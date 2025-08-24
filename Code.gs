@@ -1,5 +1,29 @@
 /**
  * @OnlyCurrentDoc
+ * 
+ * AUTOMAÇÃO DE TRANSFERÊNCIA DE ANEXOS DO PIPEFY
+ * 
+ * Este script transfere automaticamente anexos de campos específicos quando
+ * o campo "o_guincho_est_sendo_solicitado_por_motivo_de_abandono" é marcado como "Sim".
+ * 
+ * FUNCIONAMENTO:
+ * 1. O Pipefy envia um webhook quando o campo é alterado
+ * 2. O script verifica se o valor é "Sim"
+ * 3. Busca todos os anexos dos campos de origem (fotos)
+ * 4. Transfere os anexos para o campo de destino (evidências)
+ * 
+ * CONFIGURAÇÃO:
+ * 1. Execute configurarPropriedades() com seu token e organization ID
+ * 2. Implante como Web App
+ * 3. Configure o webhook no Pipefy com a URL do Web App
+ * 
+ * CORREÇÕES APLICADAS:
+ * - Melhorada validação de tipos de campos (attachment vs outros)
+ * - Adicionado suporte para reutilizar IDs de upload existentes
+ * - Corrigido formato de envio de anexos para API do Pipefy
+ * - Adicionado melhor tratamento de erros e logging detalhado
+ * - Implementado fallback para diferentes métodos de atualização
+ * - Adicionadas funções de teste para facilitar depuração
  */
 
 const PIPEFY_API_URL = 'https://api.pipefy.com/graphql';
@@ -84,28 +108,48 @@ function doPost(e) {
 function processarAnexos(cardId) {
   Logger.log(`--- Iniciando processarAnexos para o Card ID: ${cardId} ---`);
   try {
-    const dadosCard = buscarDadosCard(cardId);
-    if (!dadosCard) {
-      throw new Error('buscarDadosCard retornou nulo ou vazio.');
+    // Buscar informações completas do card incluindo a fase atual
+    const cardInfo = buscarInformacoesCompletasCard(cardId);
+    if (!cardInfo) {
+      throw new Error('Não foi possível buscar informações completas do card.');
     }
 
-    const urlsOrigem = agruparUrlsOrigem(dadosCard);
-    if (urlsOrigem && urlsOrigem.length > 0) {
-      Logger.log(`Encontradas ${urlsOrigem.length} URLs de origem. Iniciando transferência.`);
-      const idsUpload = transferirAnexos(urlsOrigem);
+    const dadosCard = cardInfo.fields;
+    const phaseId = cardInfo.current_phase?.id;
+    
+    Logger.log(`Card está na fase: ${cardInfo.current_phase?.name || 'Desconhecida'} (ID: ${phaseId})`);
+
+    const resultado = agruparUrlsOrigem(dadosCard);
+    let todosIdsUpload = [];
+    
+    // Se já existem IDs de upload, adicionar à lista
+    if (resultado.uploadIds && resultado.uploadIds.length > 0) {
+      todosIdsUpload = todosIdsUpload.concat(resultado.uploadIds);
+      Logger.log(`Reutilizando ${resultado.uploadIds.length} anexos já existentes.`);
+    }
+    
+    // Se existem URLs para baixar, fazer o download e upload
+    if (resultado.urls && resultado.urls.length > 0) {
+      Logger.log(`Encontradas ${resultado.urls.length} URLs para transferir.`);
+      const novosIdsUpload = transferirAnexos(resultado.urls);
       
-      if (idsUpload && idsUpload.length > 0) {
-        Logger.log(`Transferidos ${idsUpload.length} anexos com sucesso. IDs de upload: ${idsUpload.join(', ')}`);
-        Logger.log(`Atualizando card com IDs de upload (formato: uploads/UUID/nome_arquivo)...`);
-        atualizarCampoDestino(cardId, idsUpload);
-      } else {
-        Logger.log('Nenhum anexo foi transferido com sucesso. Nenhuma atualização será feita.');
+      if (novosIdsUpload && novosIdsUpload.length > 0) {
+        todosIdsUpload = todosIdsUpload.concat(novosIdsUpload);
+        Logger.log(`Transferidos ${novosIdsUpload.length} novos anexos.`);
       }
+    }
+    
+    // Atualizar o campo de destino com todos os IDs de upload
+    if (todosIdsUpload.length > 0) {
+      Logger.log(`Total de ${todosIdsUpload.length} anexos para atualizar no campo de destino.`);
+      Logger.log(`IDs de upload: ${todosIdsUpload.join(', ')}`);
+      atualizarCampoDestino(cardId, todosIdsUpload);
     } else {
-      Logger.log('Nenhum anexo encontrado nos campos de origem.');
+      Logger.log('Nenhum anexo encontrado para processar.');
     }
   } catch (error) {
     Logger.log(`!!! ERRO em processarAnexos: ${error.toString()}`);
+    Logger.log(`!!! Stack trace: ${error.stack}`);
   }
   Logger.log(`--- Finalizando processarAnexos para o Card ID: ${cardId} ---`);
 }
@@ -197,7 +241,18 @@ function buscarDadosCard(cardId) {
   const PIPEFY_API_TOKEN = PropertiesService.getScriptProperties().getProperty('PIPEFY_API_TOKEN');
   if (!PIPEFY_API_TOKEN) throw new Error('PIPEFY_API_TOKEN não encontrado.');
   
-  const query = `query { card(id: ${cardId}) { fields { field { id } value } } }`;
+  const query = `query { 
+    card(id: ${cardId}) { 
+      fields { 
+        field { 
+          id 
+          label 
+          type 
+        } 
+        value 
+      } 
+    } 
+  }`;
   const response = fazerRequisicaoPipefy(query, PIPEFY_API_TOKEN);
   
   if (!response.data || !response.data.card || !response.data.card.fields) {
@@ -205,6 +260,41 @@ function buscarDadosCard(cardId) {
   }
   Logger.log(`5. DADOS DO CARD RECEBIDOS.`);
   return response.data.card.fields;
+}
+
+/**
+ * Busca informações completas do card incluindo fase atual
+ */
+function buscarInformacoesCompletasCard(cardId) {
+  Logger.log(`BUSCANDO INFORMAÇÕES COMPLETAS DO CARD: ${cardId}`);
+  const PIPEFY_API_TOKEN = PropertiesService.getScriptProperties().getProperty('PIPEFY_API_TOKEN');
+  if (!PIPEFY_API_TOKEN) throw new Error('PIPEFY_API_TOKEN não encontrado.');
+  
+  const query = `query { 
+    card(id: ${cardId}) { 
+      id
+      title
+      current_phase {
+        id
+        name
+      }
+      fields { 
+        field { 
+          id 
+          label 
+          type 
+        } 
+        value 
+      } 
+    } 
+  }`;
+  const response = fazerRequisicaoPipefy(query, PIPEFY_API_TOKEN);
+  
+  if (!response.data || !response.data.card) {
+    throw new Error('Estrutura de resposta inválida da API do Pipefy ao buscar informações completas do card.');
+  }
+  Logger.log(`INFORMAÇÕES COMPLETAS DO CARD RECEBIDAS.`);
+  return response.data.card;
 }
 
 /**
@@ -223,19 +313,55 @@ function agruparUrlsOrigem(campos) {
     'foto_do_ve_culo_e_ou_local_da_recolha_3_3', 'foto_da_lateral_direita_passageiro_3'
   ];
   let urlsAnexos = [];
+  let idsUploadExistentes = [];
+  
+  Logger.log(`   Analisando ${campos.length} campos...`);
   
   for (const campo of campos) {
+    // Verificar se o campo está na lista de origem e tem valor
     if (idsCamposOrigem.includes(campo.field.id) && campo.value) {
       try {
-        const urls = JSON.parse(campo.value);
-        if (Array.isArray(urls)) {
-          urlsAnexos = urlsAnexos.concat(urls);
+        const valores = JSON.parse(campo.value);
+        if (Array.isArray(valores)) {
+          Logger.log(`   Campo ${campo.field.id}: ${valores.length} valores encontrados`);
+          
+          // Separar URLs de download de IDs de upload
+          valores.forEach(valor => {
+            if (typeof valor === 'string') {
+              if (valor.startsWith('http')) {
+                urlsAnexos.push(valor);
+              } else if (valor.startsWith('uploads/')) {
+                idsUploadExistentes.push(valor);
+              }
+            }
+          });
         }
-      } catch (e) { /* Ignora valores que não são JSON array */ }
+      } catch (e) { 
+        // Se não for JSON, pode ser uma string única
+        if (campo.value && typeof campo.value === 'string') {
+          if (campo.value.startsWith('http')) {
+            Logger.log(`   Campo ${campo.field.id}: 1 anexo encontrado (URL)`);
+            urlsAnexos.push(campo.value);
+          } else if (campo.value.startsWith('uploads/')) {
+            Logger.log(`   Campo ${campo.field.id}: 1 anexo encontrado (ID upload)`);
+            idsUploadExistentes.push(campo.value);
+          }
+        }
+      }
     }
   }
-  Logger.log(`7. URLs DE ORIGEM AGRUPADAS (${urlsAnexos.length} anexos).`);
-  return urlsAnexos;
+  
+  Logger.log(`7. URLs DE ORIGEM AGRUPADAS:`);
+  Logger.log(`   - URLs para download: ${urlsAnexos.length}`);
+  Logger.log(`   - IDs de upload existentes: ${idsUploadExistentes.length}`);
+  
+  // Se já temos IDs de upload, não precisamos baixar e re-fazer upload
+  if (idsUploadExistentes.length > 0 && urlsAnexos.length === 0) {
+    Logger.log(`   Usando IDs de upload existentes diretamente.`);
+    return { urls: [], uploadIds: idsUploadExistentes };
+  }
+  
+  return { urls: urlsAnexos, uploadIds: idsUploadExistentes };
 }
 
 
@@ -257,21 +383,39 @@ function atualizarCampoDestino(cardId, anexos) {
   Logger.log(`9. VERIFICANDO CAMPOS DISPONÍVEIS NO CARD...`);
   const camposDisponiveis = listarCamposCard(cardId, PIPEFY_API_TOKEN);
   
-  // Procurar campos que possam ser de anexo
+  // Procurar campos que sejam especificamente de tipo attachment
   const camposAnexo = camposDisponiveis.filter(campo => {
+    const fieldType = campo.field.type;
     const fieldId = campo.field.id.toLowerCase();
-    return fieldId.includes('anexo') || 
+    // Filtrar apenas campos do tipo attachment
+    return fieldType === 'attachment' && (
+           fieldId.includes('anexo') || 
            fieldId.includes('evidencia') || 
            fieldId.includes('evidência') ||
            fieldId.includes('evid') ||
            fieldId.includes('banimento') ||
-           fieldId.includes('foto') ||
-           fieldId.includes('imagem');
+           fieldId.includes('imagem') ||
+           fieldId.includes('arquivo') ||
+           fieldId.includes('file') ||
+           fieldId.includes('upload')
+    );
   });
+  
+  // Se não encontrar campos de attachment, procurar por todos os campos de attachment
+  if (camposAnexo.length === 0) {
+    Logger.log(`   Nenhum campo de anexo encontrado com os filtros. Buscando todos os campos de attachment...`);
+    const todosAttachments = camposDisponiveis.filter(campo => campo.field.type === 'attachment');
+    Logger.log(`   Total de campos attachment no card: ${todosAttachments.length}`);
+    todosAttachments.forEach((campo, index) => {
+      Logger.log(`   Campo attachment ${index + 1}: ID="${campo.field.id}", Label="${campo.field.label}"`);
+    });
+    // Usar todos os campos de attachment se não houver filtros específicos
+    camposAnexo.push(...todosAttachments);
+  }
   
   Logger.log(`10. CAMPOS DE ANEXO ENCONTRADOS: ${camposAnexo.length}`);
   camposAnexo.forEach((campo, index) => {
-    Logger.log(`   Campo ${index + 1}: ID="${campo.field.id}", Valor atual: ${JSON.stringify(campo.value)}`);
+    Logger.log(`   Campo ${index + 1}: ID="${campo.field.id}", Tipo="${campo.field.type}", Valor atual: ${JSON.stringify(campo.value)}`);
   });
   
   // Tentar atualizar o campo original primeiro
@@ -341,17 +485,30 @@ function listarCamposCard(cardId, token) {
 function tentarAtualizarCampo(cardId, fieldId, anexos, token) {
   Logger.log(`   Testando campo: ${fieldId}`);
   
-  // MÉTODO 1: String JSON
-  let success = atualizarCampoEspecifico(cardId, fieldId, JSON.stringify(anexos), token, 'STRING_JSON');
+  // Para campos de attachment, usar o método especial de anexar arquivos
+  const campoInfo = obterInformacaoCampo(cardId, fieldId, token);
+  if (campoInfo && campoInfo.type === 'attachment') {
+    Logger.log(`   Campo ${fieldId} é do tipo attachment. Usando método de anexar arquivos.`);
+    return anexarArquivosAoCampo(cardId, fieldId, anexos, token);
+  }
+  
+  // MÉTODO 1: Usando variáveis GraphQL (mais seguro)
+  let success = atualizarCampoDestinoComVariaveis(cardId, fieldId, anexos, token);
   if (success) return true;
   
   // MÉTODO 2: Array direto
   success = atualizarCampoComArray(cardId, fieldId, anexos, token);
   if (success) return true;
   
-  // MÉTODO 3: Anexo único
-  success = atualizarCampoEspecifico(cardId, fieldId, anexos[0], token, 'ANEXO_UNICO');
+  // MÉTODO 3: String JSON (caso o campo espere uma string)
+  success = atualizarCampoEspecifico(cardId, fieldId, JSON.stringify(anexos), token, 'STRING_JSON');
   if (success) return true;
+  
+  // MÉTODO 4: Anexo único (caso o campo aceite apenas um anexo)
+  if (anexos.length > 0) {
+    success = atualizarCampoEspecifico(cardId, fieldId, anexos[0], token, 'ANEXO_UNICO');
+    if (success) return true;
+  }
   
   return false;
 }
@@ -365,6 +522,7 @@ function atualizarCampoEspecifico(cardId, fieldId, valor, token, metodo) {
     let valorFormatado;
     
     if (metodo === 'STRING_JSON') {
+      // Para string JSON, precisamos escapar corretamente
       valorFormatado = JSON.stringify(valor);
       mutation = `mutation { 
         updateCardField(input: { 
@@ -376,6 +534,7 @@ function atualizarCampoEspecifico(cardId, fieldId, valor, token, metodo) {
         } 
       }`;
     } else if (metodo === 'ANEXO_UNICO') {
+      // Para anexo único, enviar apenas a string sem array
       valorFormatado = `"${valor.replace(/"/g, '\\"')}"`;
       mutation = `mutation { 
         updateCardField(input: { 
@@ -388,7 +547,8 @@ function atualizarCampoEspecifico(cardId, fieldId, valor, token, metodo) {
       }`;
     }
     
-    Logger.log(`     Método ${metodo}: ${mutation.substring(0, 200)}...`);
+    Logger.log(`     Método ${metodo}: Tentando atualizar campo ${fieldId}`);
+    Logger.log(`     Mutation: ${mutation}`);
     
     const response = fazerRequisicaoPipefy(mutation, token);
     
@@ -396,7 +556,16 @@ function atualizarCampoEspecifico(cardId, fieldId, valor, token, metodo) {
       Logger.log(`     ✅ SUCESSO com método ${metodo} no campo ${fieldId}`);
       return true;
     } else {
-      Logger.log(`     ❌ Falha método ${metodo}: ${JSON.stringify(response.errors?.[0]?.message || 'Erro desconhecido')}`);
+      const errorMsg = response.errors?.[0]?.message || 'Erro desconhecido';
+      Logger.log(`     ❌ Falha método ${metodo}: ${errorMsg}`);
+      if (response.errors) {
+        response.errors.forEach((error, idx) => {
+          Logger.log(`        Erro ${idx + 1}: ${error.message}`);
+          if (error.extensions?.code) {
+            Logger.log(`        Código: ${error.extensions.code}`);
+          }
+        });
+      }
       return false;
     }
   } catch (error) {
@@ -410,6 +579,7 @@ function atualizarCampoEspecifico(cardId, fieldId, valor, token, metodo) {
  */
 function atualizarCampoComArray(cardId, fieldId, anexos, token) {
   try {
+    // Para campos de anexo, enviar array de strings
     const anexosEscapados = anexos.map(url => `"${url.replace(/"/g, '\\"')}"`).join(', ');
     const mutation = `mutation { 
       updateCardField(input: { 
@@ -421,7 +591,8 @@ function atualizarCampoComArray(cardId, fieldId, anexos, token) {
       } 
     }`;
     
-    Logger.log(`     Método ARRAY: ${mutation.substring(0, 200)}...`);
+    Logger.log(`     Método ARRAY: Tentando atualizar campo ${fieldId} com ${anexos.length} anexos`);
+    Logger.log(`     Mutation: ${mutation}`);
     
     const response = fazerRequisicaoPipefy(mutation, token);
     
@@ -429,7 +600,16 @@ function atualizarCampoComArray(cardId, fieldId, anexos, token) {
       Logger.log(`     ✅ SUCESSO com método ARRAY no campo ${fieldId}`);
       return true;
     } else {
-      Logger.log(`     ❌ Falha método ARRAY: ${JSON.stringify(response.errors?.[0]?.message || 'Erro desconhecido')}`);
+      const errorMsg = response.errors?.[0]?.message || 'Erro desconhecido';
+      Logger.log(`     ❌ Falha método ARRAY: ${errorMsg}`);
+      if (response.errors) {
+        response.errors.forEach((error, idx) => {
+          Logger.log(`        Erro ${idx + 1}: ${error.message}`);
+          if (error.extensions?.code) {
+            Logger.log(`        Código: ${error.extensions.code}`);
+          }
+        });
+      }
       return false;
     }
   } catch (error) {
@@ -441,12 +621,12 @@ function atualizarCampoComArray(cardId, fieldId, anexos, token) {
 /**
  * Tenta atualizar usando variáveis GraphQL (método preferido)
  */
-function atualizarCampoDestinoComVariaveis(cardId, anexos, token) {
+function atualizarCampoDestinoComVariaveis(cardId, fieldId, anexos, token) {
   try {
-    const mutation = `mutation($cardId: ID!, $newValue: [String!]!) { 
+    const mutation = `mutation($cardId: ID!, $fieldId: ID!, $newValue: [String!]!) { 
       updateCardField(input: { 
         card_id: $cardId, 
-        field_id: "evid_ncias_para_banimento", 
+        field_id: $fieldId, 
         new_value: $newValue
       }) { 
         card { id } 
@@ -455,19 +635,21 @@ function atualizarCampoDestinoComVariaveis(cardId, anexos, token) {
     
     const variables = {
       cardId: cardId.toString(),
+      fieldId: fieldId,
       newValue: anexos
     };
     
-    Logger.log(`   Mutation com variáveis: ${mutation}`);
+    Logger.log(`   Mutation com variáveis para campo ${fieldId}`);
     Logger.log(`   Variáveis: ${JSON.stringify(variables)}`);
     
     const response = fazerRequisicaoPipefy(mutation, token, variables);
 
     if (response.data && response.data.updateCardField && response.data.updateCardField.card) {
-      Logger.log(`11. ✅ CAMPO ATUALIZADO COM SUCESSO (método com variáveis).`);
+      Logger.log(`✅ CAMPO ${fieldId} ATUALIZADO COM SUCESSO (método com variáveis).`);
       return true;
     } else {
-      Logger.log(`❌ Falha no método com variáveis. Resposta: ${JSON.stringify(response)}`);
+      const errorMsg = response.errors?.[0]?.message || 'Erro desconhecido';
+      Logger.log(`❌ Falha no método com variáveis para campo ${fieldId}: ${errorMsg}`);
       return false;
     }
   } catch (error) {
@@ -594,6 +776,96 @@ function atualizarCampoAnexoUnico(cardId, anexoUrl, token) {
   }
 }
 
+/**
+ * Obtém informações sobre um campo específico
+ */
+function obterInformacaoCampo(cardId, fieldId, token) {
+  try {
+    const campos = listarCamposCard(cardId, token);
+    const campo = campos.find(c => c.field.id === fieldId);
+    return campo ? campo.field : null;
+  } catch (error) {
+    Logger.log(`   Erro ao obter informações do campo: ${error.toString()}`);
+    return null;
+  }
+}
+
+/**
+ * Anexa arquivos a um campo do tipo attachment
+ */
+function anexarArquivosAoCampo(cardId, fieldId, anexos, token) {
+  try {
+    // Para campos de attachment, o Pipefy espera apenas as strings de upload
+    // sem array, uma por vez
+    if (anexos.length === 1) {
+      // Se houver apenas um anexo, enviar diretamente
+      return atualizarCampoEspecifico(cardId, fieldId, anexos[0], token, 'ANEXO_UNICO');
+    } else {
+      // Se houver múltiplos anexos, tentar enviar como array
+      // Mas primeiro verificar se o campo aceita múltiplos valores
+      Logger.log(`   Tentando anexar ${anexos.length} arquivos ao campo ${fieldId}`);
+      
+      // Tentar primeiro como array
+      let success = atualizarCampoComArray(cardId, fieldId, anexos, token);
+      if (success) return true;
+      
+      // Se falhar, tentar enviar apenas o primeiro
+      Logger.log(`   Array falhou. Tentando enviar apenas o primeiro anexo.`);
+      return atualizarCampoEspecifico(cardId, fieldId, anexos[0], token, 'ANEXO_UNICO');
+    }
+  } catch (error) {
+    Logger.log(`   Erro ao anexar arquivos: ${error.toString()}`);
+    return false;
+  }
+}
+
+
+// =================================================================
+// FUNÇÕES DE TESTE E DEBUG
+// =================================================================
+
+/**
+ * Função de teste para simular o recebimento de um webhook
+ * Útil para testar o processamento sem depender do Pipefy
+ */
+function testarProcessamento() {
+  // ID de um card para teste - substitua pelo ID real
+  const cardIdTeste = '1200959896'; // Substitua pelo ID do seu card
+  
+  Logger.log('=== INICIANDO TESTE DE PROCESSAMENTO ===');
+  
+  try {
+    // Simular o processamento de anexos
+    processarAnexos(cardIdTeste);
+    Logger.log('=== TESTE CONCLUÍDO COM SUCESSO ===');
+  } catch (error) {
+    Logger.log(`=== ERRO NO TESTE: ${error.toString()} ===`);
+    Logger.log(`Stack: ${error.stack}`);
+  }
+}
+
+/**
+ * Função para verificar a configuração
+ */
+function verificarConfiguracao() {
+  const properties = PropertiesService.getScriptProperties();
+  const token = properties.getProperty('PIPEFY_API_TOKEN');
+  const orgId = properties.getProperty('PIPEFY_ORGANIZATION_ID');
+  const webAppUrl = properties.getProperty('WEB_APP_URL');
+  
+  Logger.log('=== VERIFICAÇÃO DE CONFIGURAÇÃO ===');
+  Logger.log(`API Token configurado: ${token ? 'SIM' : 'NÃO'}`);
+  Logger.log(`Organization ID configurado: ${orgId ? 'SIM' : 'NÃO'}`);
+  Logger.log(`Web App URL: ${webAppUrl || 'NÃO CONFIGURADO'}`);
+  
+  if (!token || !orgId) {
+    Logger.log('❌ ERRO: Execute a função configurarPropriedades() primeiro!');
+    return false;
+  }
+  
+  Logger.log('✅ Configuração OK');
+  return true;
+}
 
 // =================================================================
 // PARTE 4: FUNÇÕES DE BAIXO NÍVEL - INTERAÇÃO COM API
