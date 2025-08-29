@@ -1,0 +1,1278 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestão de Ativos — Loss Prevention</title>
+    <style>
+        /* Reset e configurações básicas */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* Tipografia system UI stack */
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'SF Pro Display', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+            color: #0F172A;
+            background-color: #F8FAFC;
+            overflow: hidden;
+            position: relative;
+            height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            background: #FFFFFF;
+            border-bottom: 1px solid #E2E8F0;
+            padding: 1rem 2rem;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #0F172A;
+        }
+
+        .controls {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            border: 1px solid #E2E8F0;
+            background: #FFFFFF;
+            color: #475569;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn:hover {
+            background: #F1F5F9;
+            border-color: #CBD5E1;
+            color: #0F172A;
+        }
+
+        .btn:active {
+            transform: translateY(1px);
+        }
+
+        /* Container principal */
+        .main-container {
+            position: absolute;
+            top: 73px;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            overflow: hidden;
+            background: #F8FAFC;
+        }
+
+        /* Canvas do fluxograma */
+        #flow-canvas {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            cursor: grab;
+            transform-origin: 0 0;
+        }
+
+        #flow-canvas.grabbing {
+            cursor: grabbing;
+        }
+
+        /* Container do grafo */
+        #flow-root {
+            position: absolute;
+            transform-origin: 0 0;
+            transition: transform 0.3s ease;
+        }
+
+        /* Estilos dos nós (cartões) */
+        .node {
+            position: absolute;
+            background: #FFFFFF;
+            border: 1px solid #E2E8F0;
+            border-radius: 16px;
+            padding: 1.25rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            transition: all 0.2s;
+            cursor: pointer;
+            min-width: 200px;
+            max-width: 280px;
+        }
+
+        .node:hover {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
+            transform: translateY(-2px);
+        }
+
+        .node-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #0F172A;
+            margin-bottom: 0.25rem;
+            line-height: 1.4;
+        }
+
+        .node-subtitle {
+            font-size: 0.875rem;
+            color: #64748B;
+            line-height: 1.4;
+        }
+
+        /* Badge de resultado */
+        .result-badge {
+            position: absolute;
+            top: -8px;
+            right: -10px;
+            background: #FF355A;
+            color: #FFFFFF;
+            padding: 0.375rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            box-shadow: 0 2px 4px rgba(255, 53, 90, 0.2);
+            white-space: nowrap;
+            z-index: 10;
+        }
+
+        .result-badge::before {
+            content: '';
+            position: absolute;
+            bottom: -6px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 2px;
+            height: 8px;
+            background: #FF355A;
+        }
+
+        /* Caixa de comentários */
+        .note-box {
+            position: absolute;
+            background: #FFFBEA;
+            border: 1px solid #FDE68A;
+            border-radius: 12px;
+            padding: 1rem;
+            box-shadow: 0 4px 6px -1px rgba(251, 191, 36, 0.1);
+            max-width: 300px;
+            z-index: 5;
+        }
+
+        .note-box-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+            font-weight: 600;
+            color: #92400E;
+        }
+
+        .note-box ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .note-box li {
+            position: relative;
+            padding-left: 1.5rem;
+            margin-bottom: 0.5rem;
+            font-size: 0.813rem;
+            line-height: 1.5;
+            color: #78350F;
+        }
+
+        .note-box li::before {
+            content: '•';
+            position: absolute;
+            left: 0.5rem;
+            color: #F59E0B;
+            font-weight: bold;
+        }
+
+        /* Chevron para colapsar */
+        .chevron {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            margin-right: 0.25rem;
+            transition: transform 0.2s;
+            cursor: pointer;
+            vertical-align: middle;
+        }
+
+        .chevron.collapsed {
+            transform: rotate(-90deg);
+        }
+
+        .chevron svg {
+            width: 16px;
+            height: 16px;
+            fill: #94A3B8;
+        }
+
+        /* SVG container para linhas */
+        #svg-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* Linhas do grafo */
+        .edge-path {
+            fill: none;
+            stroke: #94A3B8;
+            stroke-width: 2px;
+        }
+
+        .edge-arrow {
+            fill: #94A3B8;
+        }
+
+        .note-connector {
+            stroke: #FDE68A;
+            stroke-width: 2px;
+            stroke-dasharray: 5, 5;
+            fill: none;
+        }
+
+        /* Tooltip */
+        .tooltip {
+            position: absolute;
+            background: #1E293B;
+            color: #FFFFFF;
+            padding: 0.5rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.813rem;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s;
+            z-index: 1100;
+            white-space: nowrap;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+        }
+
+        .tooltip.visible {
+            opacity: 1;
+        }
+
+        .tooltip::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 5px solid transparent;
+            border-top-color: #1E293B;
+        }
+
+        /* Estado colapsado */
+        .node.collapsed .node-subtitle {
+            opacity: 0.7;
+        }
+
+        .node.has-children::after {
+            content: '';
+            position: absolute;
+            right: -8px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 4px;
+            height: 4px;
+            background: #CBD5E1;
+            border-radius: 50%;
+        }
+
+        /* Indicador de zoom */
+        .zoom-indicator {
+            position: absolute;
+            bottom: 1rem;
+            right: 1rem;
+            background: rgba(15, 23, 42, 0.8);
+            color: #FFFFFF;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .zoom-indicator.visible {
+            opacity: 1;
+        }
+
+        /* Responsividade */
+        @media (max-width: 768px) {
+            .header {
+                padding: 0.75rem 1rem;
+            }
+
+            .header h1 {
+                font-size: 1.25rem;
+            }
+
+            .btn {
+                padding: 0.375rem 0.75rem;
+                font-size: 0.813rem;
+            }
+
+            .node {
+                min-width: 160px;
+                max-width: 220px;
+                padding: 1rem;
+            }
+
+            .note-box {
+                max-width: 240px;
+            }
+        }
+
+        /* Animações */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .node {
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        /* Print styles */
+        @media print {
+            .header {
+                position: relative;
+                box-shadow: none;
+            }
+
+            .controls {
+                display: none;
+            }
+
+            .main-container {
+                position: relative;
+                top: 0;
+                overflow: visible;
+            }
+
+            #flow-canvas {
+                cursor: default;
+            }
+
+            .node:hover {
+                transform: none;
+                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header com controles -->
+    <header class="header">
+        <h1>Gestão de Ativos — Loss Prevention</h1>
+        <div class="controls">
+            <button class="btn" id="expand-all" aria-label="Expandir todos os nós">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                    <path d="M3 2h10a1 1 0 011 1v10a1 1 0 01-1 1H3a1 1 0 01-1-1V3a1 1 0 011-1zm1 2v8h8V4H4z"/>
+                    <path d="M8 5v6M5 8h6" stroke="currentColor" stroke-width="1.5" fill="none"/>
+                </svg>
+                Expandir tudo
+            </button>
+            <button class="btn" id="collapse-all" aria-label="Colapsar todos os nós">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                    <path d="M3 2h10a1 1 0 011 1v10a1 1 0 01-1 1H3a1 1 0 01-1-1V3a1 1 0 011-1zm1 2v8h8V4H4z"/>
+                    <path d="M5 8h6" stroke="currentColor" stroke-width="1.5" fill="none"/>
+                </svg>
+                Colapsar tudo
+            </button>
+            <button class="btn" id="reset-zoom" aria-label="Resetar zoom">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                    <circle cx="7" cy="7" r="4" fill="none" stroke="currentColor" stroke-width="1.5"/>
+                    <path d="M10 10l3 3" stroke="currentColor" stroke-width="1.5"/>
+                    <path d="M7 5v4M5 7h4" stroke="currentColor" stroke-width="1.5" fill="none"/>
+                </svg>
+                Reset zoom
+            </button>
+            <button class="btn" id="export-png" aria-label="Exportar como PNG">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                    <path d="M4 10v3a1 1 0 001 1h6a1 1 0 001-1v-3M8 2v8M5 5l3-3 3 3" stroke="currentColor" stroke-width="1.5" fill="none"/>
+                </svg>
+                Exportar PNG
+            </button>
+        </div>
+    </header>
+
+    <!-- Container principal -->
+    <main class="main-container">
+        <div id="flow-canvas">
+            <svg id="svg-container"></svg>
+            <div id="flow-root"></div>
+        </div>
+        <div class="zoom-indicator" id="zoom-indicator"></div>
+    </main>
+
+    <!-- Tooltip -->
+    <div class="tooltip" id="tooltip"></div>
+
+    <script>
+        // Dataset fornecido
+        const data = {
+            "id": "1",
+            "title": "Gestão de ativos — Loss Prevention",
+            "children": [
+                {
+                    "id": "1.1",
+                    "title": "Perder no máximo 10 carros/mês",
+                    "subtitle": "Meta UE R$ 64",
+                    "resultBadge": "Resultado R$ 6.7M / UE R$ 50",
+                    "children": [
+                        {
+                            "id": "1.1.1",
+                            "title": "Não recuperados",
+                            "subtitle": "89 casos",
+                            "resultBadge": "Resultado R$ 6.7M",
+                            "children": [
+                                { "id": "1.1.1.1", "title": "Perdas por roubo", "subtitle": "39 casos", "resultBadge": "Resultado R$ 3.0M" },
+                                {
+                                    "id": "1.1.1.2",
+                                    "title": "Perdas por estelionato",
+                                    "subtitle": "50 casos",
+                                    "resultBadge": "Resultado R$ 3.7M",
+                                    "children": [
+                                        { "id": "1.1.1.2.1", "title": "Falsa comunicação de crime", "subtitle": "27 casos", "resultBadge": "Resultado R$ 1.9M" },
+                                        { "id": "1.1.1.2.2", "title": "Apropriação indébita", "subtitle": "11 casos", "resultBadge": "Resultado R$ 823k" },
+                                        { "id": "1.1.1.2.3", "title": "Uso de laranjas", "subtitle": "9 casos", "resultBadge": "Resultado R$ 706k" },
+                                        { "id": "1.1.1.2.4", "title": "Fraude cadastral", "subtitle": "3 casos", "resultBadge": "Resultado R$ 246k" }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "id": "1.1.2",
+                            "title": "Recuperados",
+                            "subtitle": "38 casos",
+                            "resultBadge": "Resultado +R$ 2.7M",
+                            "children": [
+                                { "id": "1.1.2.1", "title": "Roubos", "subtitle": "2 casos", "resultBadge": "Resultado +R$ 145k" },
+                                { "id": "1.1.2.2", "title": "Estelionato", "subtitle": "36 casos", "resultBadge": "Resultado +R$ 2.5M" }
+                            ]
+                        }
+                    ],
+                    "noteBox": [
+                        "Padrão mais crítico: combinação de inadimplência alta, problemas documentais, pagamentos por terceiros com restrição (BGC) e relatos inconsistentes com rastreador.",
+                        "Modus operandi: dívidas acumuladas, incidente em local conhecido, comunicação tardia, veículo não recuperado.",
+                        "Oportunidades operacionais: contato com cliente, início ágil de tratativas de desconexões/alertas, acionamento rápido de Pronta Resposta.",
+                        "Oportunidades sistêmicas: integrar Safety Admin + Pipefy; ingerir dados Pix para detecção de vínculos de risco."
+                    ]
+                },
+                {
+                    "id": "1.2",
+                    "title": "Gastos com guincho por recolha R$ 10",
+                    "resultBadge": "Resultado R$ 3.8M / UE R$ 32",
+                    "children": [
+                        {
+                            "id": "1.2.1",
+                            "title": "Chofer",
+                            "resultBadge": "Resultado R$ 2.2M",
+                            "children": [
+                                { "id": "1.2.1.1", "title": "Recolha Inadimplência", "resultBadge": "Resultado R$ 2.2M" }
+                            ]
+                        },
+                        {
+                            "id": "1.2.2",
+                            "title": "Guincho",
+                            "resultBadge": "Resultado R$ 1.2M",
+                            "children": [
+                                { "id": "1.2.2.1", "title": "Recolha Inadimplência", "resultBadge": "Resultado R$ 370k" },
+                                { "id": "1.2.2.2", "title": "Safety", "resultBadge": "Resultado R$ 830k" }
+                            ]
+                        },
+                        {
+                            "id": "1.2.3",
+                            "title": "Cegonha",
+                            "resultBadge": "Resultado R$ 414k",
+                            "children": [
+                                { "id": "1.2.3.1", "title": "Recolha Inadimplência", "resultBadge": "Resultado R$ 102k" },
+                                { "id": "1.2.3.2", "title": "Safety", "resultBadge": "Resultado R$ 312k" }
+                            ]
+                        }
+                    ],
+                    "noteBox": [
+                        "Padrão crítico: baixa devolução voluntária.",
+                        "Aumento de abandono em via pública (recorde Ago/2025: 88; média 2025: 64/mês).",
+                        "Impacto em custos de segunda via de chaves e tendência de alta em cegonha por expansão."
+                    ]
+                },
+                {
+                    "id": "1.3",
+                    "title": "Gastos com Pronta Resposta",
+                    "subtitle": "UE R$ 30",
+                    "resultBadge": "Resultado R$ 2.6M / UE R$ 42",
+                    "children": [
+                        {
+                            "id": "1.3.1",
+                            "title": "Desconexão",
+                            "resultBadge": "46% dos alertas",
+                            "children": [
+                                { "id": "1.3.1.1", "title": "Positivo", "resultBadge": "59% dos alertas" },
+                                { "id": "1.3.1.2", "title": "Falso Positivo", "resultBadge": "41% dos alertas" }
+                            ]
+                        },
+                        {
+                            "id": "1.3.2",
+                            "title": "Sem sinal",
+                            "resultBadge": "30% dos alertas",
+                            "children": [
+                                { "id": "1.3.2.1", "title": "Positivo", "resultBadge": "59% dos alertas" },
+                                { "id": "1.3.2.2", "title": "Falso Positivo", "resultBadge": "41% dos alertas" }
+                            ]
+                        },
+                        { "id": "1.3.3", "title": "Zombie", "resultBadge": "2% dos alertas" },
+                        { "id": "1.3.4", "title": "Prevenção", "resultBadge": "13% dos alertas" },
+                        { "id": "1.3.5", "title": "CX Emergência", "resultBadge": "8% dos alertas" },
+                        { "id": "1.3.6", "title": "Fronteira", "resultBadge": "1% dos alertas" }
+                    ],
+                    "noteBox": [
+                        "Distribuição por Regional (ago): SP 73%, POA 13%, FOR 3%, BSB 3%, CAMP 2%, STS 2%, REC 1%, BH 1%, FLN 1%, CWB 1%, GYN 1%.",
+                        "Pontos de atenção: desconexões por má instalação (novas cidades); rotina de redução de falsos positivos com Tech; aumento de ataques correlacionado às perdas consumadas/evitadas."
+                    ]
+                },
+                {
+                    "id": "1.4",
+                    "title": "Seized — Frota apreendida",
+                    "subtitle": "Manter < 21 | Média 39 em andamento",
+                    "children": [
+                        {
+                            "id": "1.4.1",
+                            "title": "Infrações de trânsito",
+                            "resultBadge": "30,3% das apreensões",
+                            "children": [
+                                { "id": "1.4.1.1", "title": "Conduzir sem CNH", "resultBadge": "12,6% das multas" },
+                                { "id": "1.4.1.2", "title": "Estacionamento irregular", "resultBadge": "32,8% das multas" },
+                                { "id": "1.4.1.3", "title": "Pneu careca", "resultBadge": "13,4% das multas" },
+                                { "id": "1.4.1.4", "title": "Recusa bafômetro", "resultBadge": "11,8% das multas" }
+                            ]
+                        },
+                        { "id": "1.4.2", "title": "Recuperação roubo/furto", "resultBadge": "23,2% das apreensões" },
+                        { "id": "1.4.3", "title": "Acidente de trânsito", "resultBadge": "8,3% das apreensões" },
+                        { "id": "1.4.4", "title": "Restrição de circulação", "resultBadge": "6,5% das apreensões" },
+                        {
+                            "id": "1.4.5",
+                            "title": "Ocorrências criminais",
+                            "resultBadge": "21,4% das apreensões",
+                            "children": [
+                                { "id": "1.4.5.1", "title": "Tráfico", "resultBadge": "39,7% das multas" },
+                                { "id": "1.4.5.2", "title": "Assalto", "resultBadge": "27,2% das multas" }
+                            ]
+                        },
+                        { "id": "1.4.6", "title": "Outros motivos", "resultBadge": "9,6% das apreensões" }
+                    ],
+                    "noteBox": [
+                        "Observações: casos judiciais subiram de 17 para 27 (YTD).",
+                        "Gap de prazo: adm 3–15 dias vs judiciais 100–300 dias.",
+                        "Alta em apreensões por ocorrências criminais.",
+                        "Ações: procuração ECAR (piloto LM); visitas a Delegacias; verificação de veículos em perícia; relacionamento com escrivães; monitoramento via DDL; foco >200 dias; alertas de risco de leilão."
+                    ]
+                },
+                {
+                    "id": "1.5",
+                    "title": "Sinistros de Perda Total",
+                    "resultBadge": "234 carros",
+                    "children": [
+                        {
+                            "id": "1.5.1",
+                            "title": "São Paulo",
+                            "resultBadge": "213 carros | 176 avaliados",
+                            "children": [
+                                { "id": "1.5.1.1", "title": "Venda no estado", "resultBadge": "117 carros" },
+                                { "id": "1.5.1.2", "title": "PT", "resultBadge": "1 carro" },
+                                { "id": "1.5.1.3", "title": "Manutenção", "resultBadge": "58 carros" }
+                            ]
+                        },
+                        {
+                            "id": "1.5.2",
+                            "title": "Porto Alegre",
+                            "resultBadge": "20 carros",
+                            "children": [
+                                { "id": "1.5.2.1", "title": "Venda no estado", "resultBadge": "6 carros" },
+                                { "id": "1.5.2.2", "title": "PT", "resultBadge": "4 carros" },
+                                { "id": "1.5.2.3", "title": "Manutenção", "resultBadge": "10 carros" }
+                            ]
+                        },
+                        {
+                            "id": "1.5.3",
+                            "title": "Outras cidades",
+                            "resultBadge": "1 carro",
+                            "children": [
+                                { "id": "1.5.3.1", "title": "Manutenção", "resultBadge": "1 carro" }
+                            ]
+                        }
+                    ],
+                    "noteBox": [
+                        "Padrão crítico: custos de ~R$500k/ano (2023) → R$1,6M (até ago/2025).",
+                        "Risco: retroalimentação de desmanches; pagamentos sem orçamentos/garantia; falta de documentação (BO, CNH, CRLV, croqui, fotos); risco reputacional CNPJ→CPF.",
+                        "Recomendações: Política de Sinistros (60 dias), rede de oficinas credenciadas, BO obrigatório, aprovação L3+ com auditoria prévia."
+                    ]
+                }
+            ]
+        };
+
+        // Variáveis globais
+        let nodes = new Map();
+        let edges = [];
+        let noteBoxes = [];
+        let scale = 1;
+        let translateX = 0;
+        let translateY = 0;
+        let isDragging = false;
+        let startX = 0;
+        let startY = 0;
+
+        // Configurações de layout
+        const config = {
+            nodeWidth: 240,
+            nodeHeight: 80,
+            levelGap: 100,
+            siblingGap: 30,
+            noteBoxOffset: 20
+        };
+
+        /**
+         * Calcula o layout da árvore (posições x, y de cada nó)
+         */
+        function layoutTree(root) {
+            const levels = [];
+            const queue = [{node: root, level: 0}];
+            
+            // Primeiro, organizar nós por níveis
+            while (queue.length > 0) {
+                const {node, level} = queue.shift();
+                
+                if (!levels[level]) {
+                    levels[level] = [];
+                }
+                
+                levels[level].push(node);
+                
+                if (node.children && !node._collapsed) {
+                    node.children.forEach(child => {
+                        queue.push({node: child, level: level + 1});
+                    });
+                }
+            }
+            
+            // Calcular posições Y (centradas verticalmente)
+            let currentY = 50;
+            levels.forEach((level, levelIndex) => {
+                let maxHeight = 0;
+                level.forEach(node => {
+                    node.y = currentY;
+                    maxHeight = Math.max(maxHeight, config.nodeHeight);
+                });
+                currentY += maxHeight + config.siblingGap;
+            });
+            
+            // Calcular posições X
+            levels.forEach((level, levelIndex) => {
+                const totalWidth = level.length * config.nodeWidth + (level.length - 1) * config.levelGap;
+                let currentX = 50 + levelIndex * (config.nodeWidth + config.levelGap);
+                
+                level.forEach((node, nodeIndex) => {
+                    node.x = currentX;
+                    node.y = 50 + nodeIndex * (config.nodeHeight + config.siblingGap);
+                });
+            });
+            
+            // Ajustar posições para evitar sobreposições
+            adjustNodePositions(root);
+            
+            return {nodes: collectNodes(root), edges: collectEdges(root)};
+        }
+
+        /**
+         * Ajusta posições dos nós para evitar sobreposições
+         */
+        function adjustNodePositions(root) {
+            const visited = new Set();
+            
+            function adjust(node, depth = 0) {
+                if (visited.has(node.id)) return;
+                visited.add(node.id);
+                
+                if (node.children && !node._collapsed) {
+                    // Centralizar pai em relação aos filhos
+                    if (node.children.length > 0) {
+                        const childrenY = node.children.map(c => c.y);
+                        const minY = Math.min(...childrenY);
+                        const maxY = Math.max(...childrenY);
+                        node.y = minY + (maxY - minY) / 2;
+                    }
+                    
+                    node.children.forEach(child => adjust(child, depth + 1));
+                }
+            }
+            
+            adjust(root);
+        }
+
+        /**
+         * Coleta todos os nós da árvore
+         */
+        function collectNodes(root) {
+            const result = [];
+            const queue = [root];
+            
+            while (queue.length > 0) {
+                const node = queue.shift();
+                result.push(node);
+                
+                if (node.children && !node._collapsed) {
+                    queue.push(...node.children);
+                }
+            }
+            
+            return result;
+        }
+
+        /**
+         * Coleta todas as arestas da árvore
+         */
+        function collectEdges(root) {
+            const result = [];
+            const queue = [root];
+            
+            while (queue.length > 0) {
+                const node = queue.shift();
+                
+                if (node.children && !node._collapsed) {
+                    node.children.forEach(child => {
+                        result.push({from: node, to: child});
+                        queue.push(child);
+                    });
+                }
+            }
+            
+            return result;
+        }
+
+        /**
+         * Renderiza os nós e arestas
+         */
+        function renderNodesAndEdges(data) {
+            const flowRoot = document.getElementById('flow-root');
+            const svgContainer = document.getElementById('svg-container');
+            
+            // Limpar conteúdo anterior
+            flowRoot.innerHTML = '';
+            svgContainer.innerHTML = '';
+            
+            // Calcular layout
+            const layout = layoutTree(data);
+            nodes.clear();
+            edges = layout.edges;
+            
+            // Determinar dimensões do SVG
+            let maxX = 0, maxY = 0;
+            layout.nodes.forEach(node => {
+                maxX = Math.max(maxX, node.x + config.nodeWidth);
+                maxY = Math.max(maxY, node.y + config.nodeHeight);
+            });
+            
+            svgContainer.setAttribute('width', maxX + 200);
+            svgContainer.setAttribute('height', maxY + 200);
+            flowRoot.style.width = maxX + 200 + 'px';
+            flowRoot.style.height = maxY + 200 + 'px';
+            
+            // Definir marcador de seta
+            const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+            defs.innerHTML = `
+                <marker id="arrowhead" markerWidth="10" markerHeight="7" 
+                        refX="9" refY="3.5" orient="auto">
+                    <polygon points="0 0, 10 3.5, 0 7" class="edge-arrow" />
+                </marker>
+            `;
+            svgContainer.appendChild(defs);
+            
+            // Renderizar arestas
+            edges.forEach(edge => {
+                const path = createEdgePath(edge.from, edge.to);
+                svgContainer.appendChild(path);
+            });
+            
+            // Renderizar nós
+            layout.nodes.forEach(node => {
+                const nodeEl = createNodeElement(node);
+                flowRoot.appendChild(nodeEl);
+                nodes.set(node.id, {element: nodeEl, data: node});
+                
+                // Renderizar badge se existir
+                if (node.resultBadge) {
+                    renderBadge(nodeEl, node.resultBadge);
+                }
+                
+                // Adicionar funcionalidade de colapsar se tiver filhos
+                if (node.children && node.children.length > 0) {
+                    attachCollapsible(nodeEl, node);
+                }
+            });
+            
+            // Renderizar caixas de notas
+            renderNoteBoxes();
+        }
+
+        /**
+         * Cria elemento SVG para aresta (linha curva)
+         */
+        function createEdgePath(fromNode, toNode) {
+            const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            
+            const x1 = fromNode.x + config.nodeWidth;
+            const y1 = fromNode.y + config.nodeHeight / 2;
+            const x2 = toNode.x;
+            const y2 = toNode.y + config.nodeHeight / 2;
+            
+            // Curva de Bézier suave
+            const dx = x2 - x1;
+            const cp1x = x1 + dx * 0.5;
+            const cp1y = y1;
+            const cp2x = x2 - dx * 0.5;
+            const cp2y = y2;
+            
+            const d = `M ${x1} ${y1} C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${x2} ${y2}`;
+            
+            path.setAttribute('d', d);
+            path.setAttribute('class', 'edge-path');
+            path.setAttribute('marker-end', 'url(#arrowhead)');
+            
+            return path;
+        }
+
+        /**
+         * Cria elemento HTML para nó
+         */
+        function createNodeElement(node) {
+            const div = document.createElement('div');
+            div.className = 'node';
+            if (node._collapsed) {
+                div.classList.add('collapsed');
+            }
+            if (node.children && node.children.length > 0) {
+                div.classList.add('has-children');
+            }
+            
+            div.style.left = node.x + 'px';
+            div.style.top = node.y + 'px';
+            div.setAttribute('data-node-id', node.id);
+            div.setAttribute('aria-label', `Nó: ${node.title}`);
+            
+            let html = '';
+            
+            // Adicionar chevron se tiver filhos
+            if (node.children && node.children.length > 0) {
+                html += `<span class="chevron ${node._collapsed ? 'collapsed' : ''}">
+                    <svg viewBox="0 0 16 16">
+                        <path d="M6 4L10 8L6 12" stroke="currentColor" stroke-width="2" fill="none"/>
+                    </svg>
+                </span>`;
+            }
+            
+            html += `<div class="node-title">${node.title}</div>`;
+            
+            if (node.subtitle) {
+                html += `<div class="node-subtitle">${node.subtitle}</div>`;
+            }
+            
+            div.innerHTML = html;
+            
+            return div;
+        }
+
+        /**
+         * Renderiza badge de resultado
+         */
+        function renderBadge(nodeEl, badgeText) {
+            const badge = document.createElement('div');
+            badge.className = 'result-badge';
+            badge.textContent = badgeText;
+            badge.setAttribute('aria-label', `Resultado: ${badgeText}`);
+            
+            nodeEl.appendChild(badge);
+            
+            // Adicionar tooltip no hover
+            badge.addEventListener('mouseenter', (e) => {
+                showTooltip(e.target, badgeText);
+            });
+            
+            badge.addEventListener('mouseleave', () => {
+                hideTooltip();
+            });
+        }
+
+        /**
+         * Renderiza caixas de notas laterais
+         */
+        function renderNoteBoxes() {
+            const flowRoot = document.getElementById('flow-root');
+            const svgContainer = document.getElementById('svg-container');
+            
+            // IDs dos nós que têm noteBox
+            const noteNodes = ['1.1', '1.2', '1.3', '1.4', '1.5'];
+            
+            noteNodes.forEach(nodeId => {
+                const nodeInfo = nodes.get(nodeId);
+                if (nodeInfo && nodeInfo.data.noteBox) {
+                    const noteBox = createNoteBox(nodeInfo.data.noteBox);
+                    const nodeEl = nodeInfo.element;
+                    
+                    // Posicionar caixa de nota ao lado do nó
+                    const nodeRect = nodeEl.getBoundingClientRect();
+                    const flowRect = flowRoot.getBoundingClientRect();
+                    
+                    noteBox.style.left = (nodeInfo.data.x + config.nodeWidth + config.noteBoxOffset) + 'px';
+                    noteBox.style.top = nodeInfo.data.y + 'px';
+                    
+                    flowRoot.appendChild(noteBox);
+                    
+                    // Criar conector pontilhado
+                    const connector = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                    const x1 = nodeInfo.data.x + config.nodeWidth;
+                    const y1 = nodeInfo.data.y + config.nodeHeight / 2;
+                    const x2 = nodeInfo.data.x + config.nodeWidth + config.noteBoxOffset;
+                    const y2 = nodeInfo.data.y + 40;
+                    
+                    connector.setAttribute('d', `M ${x1} ${y1} L ${x2} ${y2}`);
+                    connector.setAttribute('class', 'note-connector');
+                    
+                    svgContainer.appendChild(connector);
+                }
+            });
+        }
+
+        /**
+         * Cria elemento de caixa de nota
+         */
+        function createNoteBox(notes) {
+            const div = document.createElement('div');
+            div.className = 'note-box';
+            
+            let html = '<div class="note-box-header">📌 Observações</div><ul>';
+            
+            notes.forEach(note => {
+                html += `<li>${note}</li>`;
+            });
+            
+            html += '</ul>';
+            div.innerHTML = html;
+            
+            return div;
+        }
+
+        /**
+         * Adiciona funcionalidade de colapsar/expandir
+         */
+        function attachCollapsible(nodeEl, nodeData) {
+            const chevron = nodeEl.querySelector('.chevron');
+            if (!chevron) return;
+            
+            chevron.addEventListener('click', (e) => {
+                e.stopPropagation();
+                nodeData._collapsed = !nodeData._collapsed;
+                chevron.classList.toggle('collapsed');
+                nodeEl.classList.toggle('collapsed');
+                
+                // Re-renderizar o grafo
+                renderNodesAndEdges(data);
+            });
+        }
+
+        /**
+         * Mostra tooltip
+         */
+        function showTooltip(target, text) {
+            const tooltip = document.getElementById('tooltip');
+            const rect = target.getBoundingClientRect();
+            
+            tooltip.textContent = text;
+            tooltip.style.left = rect.left + rect.width / 2 + 'px';
+            tooltip.style.top = (rect.top - 10) + 'px';
+            tooltip.style.transform = 'translate(-50%, -100%)';
+            tooltip.classList.add('visible');
+        }
+
+        /**
+         * Esconde tooltip
+         */
+        function hideTooltip() {
+            const tooltip = document.getElementById('tooltip');
+            tooltip.classList.remove('visible');
+        }
+
+        /**
+         * Expandir todos os nós
+         */
+        function expandAll(node) {
+            node._collapsed = false;
+            if (node.children) {
+                node.children.forEach(child => expandAll(child));
+            }
+        }
+
+        /**
+         * Colapsar todos os nós (exceto root)
+         */
+        function collapseAll(node, isRoot = true) {
+            if (!isRoot && node.children && node.children.length > 0) {
+                node._collapsed = true;
+            }
+            if (node.children) {
+                node.children.forEach(child => collapseAll(child, false));
+            }
+        }
+
+        /**
+         * Configurar pan e zoom
+         */
+        function setupPanZoom() {
+            const canvas = document.getElementById('flow-canvas');
+            const flowRoot = document.getElementById('flow-root');
+            const zoomIndicator = document.getElementById('zoom-indicator');
+            
+            // Mouse events
+            canvas.addEventListener('mousedown', (e) => {
+                if (e.target.closest('.node') || e.target.closest('.note-box')) return;
+                isDragging = true;
+                startX = e.clientX - translateX;
+                startY = e.clientY - translateY;
+                canvas.classList.add('grabbing');
+            });
+            
+            canvas.addEventListener('mousemove', (e) => {
+                if (!isDragging) return;
+                
+                translateX = e.clientX - startX;
+                translateY = e.clientY - startY;
+                
+                updateTransform();
+            });
+            
+            canvas.addEventListener('mouseup', () => {
+                isDragging = false;
+                canvas.classList.remove('grabbing');
+            });
+            
+            canvas.addEventListener('mouseleave', () => {
+                isDragging = false;
+                canvas.classList.remove('grabbing');
+            });
+            
+            // Wheel zoom
+            canvas.addEventListener('wheel', (e) => {
+                e.preventDefault();
+                
+                const delta = e.deltaY > 0 ? 0.9 : 1.1;
+                const newScale = Math.min(Math.max(scale * delta, 0.1), 3);
+                
+                // Zoom centrado no cursor
+                const rect = canvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                translateX = x - (x - translateX) * (newScale / scale);
+                translateY = y - (y - translateY) * (newScale / scale);
+                
+                scale = newScale;
+                updateTransform();
+                
+                // Mostrar indicador de zoom
+                zoomIndicator.textContent = `Zoom: ${Math.round(scale * 100)}%`;
+                zoomIndicator.classList.add('visible');
+                
+                clearTimeout(zoomIndicator.hideTimeout);
+                zoomIndicator.hideTimeout = setTimeout(() => {
+                    zoomIndicator.classList.remove('visible');
+                }, 1500);
+            });
+            
+            // Touch events para dispositivos móveis
+            let touchStartDistance = 0;
+            
+            canvas.addEventListener('touchstart', (e) => {
+                if (e.touches.length === 1) {
+                    isDragging = true;
+                    startX = e.touches[0].clientX - translateX;
+                    startY = e.touches[0].clientY - translateY;
+                } else if (e.touches.length === 2) {
+                    isDragging = false;
+                    touchStartDistance = getTouchDistance(e.touches);
+                }
+            });
+            
+            canvas.addEventListener('touchmove', (e) => {
+                e.preventDefault();
+                
+                if (e.touches.length === 1 && isDragging) {
+                    translateX = e.touches[0].clientX - startX;
+                    translateY = e.touches[0].clientY - startY;
+                    updateTransform();
+                } else if (e.touches.length === 2) {
+                    const distance = getTouchDistance(e.touches);
+                    const delta = distance / touchStartDistance;
+                    scale = Math.min(Math.max(scale * delta, 0.1), 3);
+                    touchStartDistance = distance;
+                    updateTransform();
+                }
+            });
+            
+            canvas.addEventListener('touchend', () => {
+                isDragging = false;
+            });
+        }
+
+        /**
+         * Calcula distância entre dois toques
+         */
+        function getTouchDistance(touches) {
+            const dx = touches[0].clientX - touches[1].clientX;
+            const dy = touches[0].clientY - touches[1].clientY;
+            return Math.sqrt(dx * dx + dy * dy);
+        }
+
+        /**
+         * Atualiza transformação do canvas
+         */
+        function updateTransform() {
+            const flowRoot = document.getElementById('flow-root');
+            flowRoot.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
+        }
+
+        /**
+         * Reseta zoom e posição
+         */
+        function resetZoom() {
+            scale = 1;
+            translateX = 0;
+            translateY = 0;
+            updateTransform();
+        }
+
+        /**
+         * Exporta para PNG
+         */
+        async function exportPNG() {
+            const flowRoot = document.getElementById('flow-root');
+            const svgContainer = document.getElementById('svg-container');
+            
+            // Criar canvas
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            // Determinar dimensões
+            const rect = flowRoot.getBoundingClientRect();
+            canvas.width = rect.width;
+            canvas.height = rect.height;
+            
+            // Fundo branco
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Renderizar SVG
+            const svgData = new XMLSerializer().serializeToString(svgContainer);
+            const svgBlob = new Blob([svgData], {type: 'image/svg+xml;charset=utf-8'});
+            const svgUrl = URL.createObjectURL(svgBlob);
+            
+            const img = new Image();
+            img.onload = () => {
+                ctx.drawImage(img, 0, 0);
+                
+                // Renderizar nós HTML como imagens (simplificado)
+                // Em produção, usar html2canvas ou similar
+                
+                // Download
+                canvas.toBlob((blob) => {
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'fluxograma-loss-prevention.png';
+                    a.click();
+                    URL.revokeObjectURL(url);
+                });
+                
+                URL.revokeObjectURL(svgUrl);
+            };
+            img.src = svgUrl;
+        }
+
+        /**
+         * Inicialização
+         */
+        function init() {
+            // Renderizar grafo inicial
+            renderNodesAndEdges(data);
+            
+            // Configurar pan e zoom
+            setupPanZoom();
+            
+            // Event listeners dos botões
+            document.getElementById('expand-all').addEventListener('click', () => {
+                expandAll(data);
+                renderNodesAndEdges(data);
+            });
+            
+            document.getElementById('collapse-all').addEventListener('click', () => {
+                collapseAll(data);
+                renderNodesAndEdges(data);
+            });
+            
+            document.getElementById('reset-zoom').addEventListener('click', resetZoom);
+            
+            document.getElementById('export-png').addEventListener('click', () => {
+                // Implementação simplificada - em produção usar html2canvas
+                const dataUrl = document.documentElement.outerHTML;
+                const blob = new Blob([dataUrl], {type: 'text/html'});
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'fluxograma-loss-prevention.html';
+                a.click();
+                URL.revokeObjectURL(url);
+                
+                alert('Para exportar como PNG, abra o arquivo HTML salvo e use a função de impressão do navegador com "Salvar como PDF" ou use uma ferramenta de captura de tela.');
+            });
+            
+            // Ajustar ao redimensionar janela
+            window.addEventListener('resize', () => {
+                renderNodesAndEdges(data);
+            });
+        }
+
+        // Iniciar quando DOM estiver pronto
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
