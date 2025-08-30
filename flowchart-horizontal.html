@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestão de Ativos — Loss Prevention</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+            background: #f5f5f7;
+            color: #1d1d1f;
+            line-height: 1.5;
+            padding: 40px 20px;
+            overflow-x: auto;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 100%;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            padding: 40px;
+            overflow-x: auto;
+        }
+
+        h1 {
+            font-size: 32px;
+            font-weight: 600;
+            margin-bottom: 40px;
+            text-align: center;
+            color: #1d1d1f;
+        }
+
+        .flowchart {
+            display: flex;
+            gap: 40px;
+            min-width: max-content;
+            padding: 20px 0;
+        }
+
+        .level {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            min-width: 280px;
+        }
+
+        .node {
+            background: #ffffff;
+            border: 2px solid #e5e5e7;
+            border-radius: 12px;
+            padding: 20px;
+            position: relative;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .node:hover {
+            border-color: #0071e3;
+            box-shadow: 0 4px 12px rgba(0,113,227,0.15);
+            transform: translateY(-2px);
+        }
+
+        .node.root {
+            background: #1d1d1f;
+            color: white;
+            border-color: #1d1d1f;
+        }
+
+        .node.root:hover {
+            background: #000;
+            border-color: #000;
+        }
+
+        .node-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 4px;
+            line-height: 1.3;
+        }
+
+        .node-subtitle {
+            font-size: 14px;
+            color: #86868b;
+            margin-bottom: 8px;
+        }
+
+        .node.root .node-subtitle {
+            color: rgba(255,255,255,0.8);
+        }
+
+        .badge {
+            display: inline-block;
+            background: #ff375f;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 16px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-top: 8px;
+        }
+
+        .badge.positive {
+            background: #34c759;
+        }
+
+        .connector {
+            position: absolute;
+            right: -40px;
+            top: 50%;
+            width: 40px;
+            height: 2px;
+            background: #d2d2d7;
+            transform: translateY(-50%);
+        }
+
+        .connector::after {
+            content: '';
+            position: absolute;
+            right: -6px;
+            top: -3px;
+            width: 8px;
+            height: 8px;
+            background: #d2d2d7;
+            border-radius: 50%;
+        }
+
+        .branch-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            position: relative;
+        }
+
+        .branch-line {
+            position: absolute;
+            left: -20px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: #d2d2d7;
+        }
+
+        .notes {
+            background: #fef9f0;
+            border: 1px solid #f5e6d3;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 12px;
+            max-width: 400px;
+        }
+
+        .notes-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #8b7355;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .notes-list {
+            list-style: none;
+        }
+
+        .notes-list li {
+            font-size: 13px;
+            color: #6b5d4f;
+            margin-bottom: 8px;
+            padding-left: 20px;
+            position: relative;
+        }
+
+        .notes-list li:before {
+            content: '•';
+            position: absolute;
+            left: 0;
+            color: #f5a623;
+            font-weight: bold;
+        }
+
+        /* Layout específico para cada nível */
+        .level-1 {
+            align-self: center;
+        }
+
+        .level-2 {
+            justify-content: space-between;
+        }
+
+        .level-3 {
+            justify-content: center;
+        }
+
+        .section {
+            display: flex;
+            gap: 40px;
+            align-items: flex-start;
+            margin-bottom: 40px;
+            padding-bottom: 40px;
+            border-bottom: 1px solid #e5e5e7;
+        }
+
+        .section:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+
+        .section-header {
+            flex: 0 0 300px;
+        }
+
+        .section-content {
+            flex: 1;
+            display: flex;
+            gap: 40px;
+            overflow-x: auto;
+            padding: 10px 0;
+        }
+
+        .subsection {
+            display: flex;
+            gap: 40px;
+            align-items: flex-start;
+        }
+
+        .vertical-group {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 20px 10px;
+            }
+
+            .container {
+                padding: 20px;
+                border-radius: 12px;
+            }
+
+            h1 {
+                font-size: 24px;
+                margin-bottom: 24px;
+            }
+
+            .node {
+                min-width: 240px;
+            }
+
+            .notes {
+                margin-top: 20px;
+            }
+        }
+
+        @media print {
+            body {
+                background: white;
+                padding: 20px;
+            }
+
+            .container {
+                box-shadow: none;
+                padding: 0;
+            }
+
+            .node:hover {
+                transform: none;
+                box-shadow: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Gestão de Ativos — Loss Prevention</h1>
+        
+        <!-- Seção 1.1: Perder no máximo 10 carros/mês -->
+        <div class="section">
+            <div class="section-header">
+                <div class="node">
+                    <div class="node-title">Perder no máximo 10 carros/mês</div>
+                    <div class="node-subtitle">Meta UE R$ 64</div>
+                    <div class="badge">Resultado R$ 6.7M / UE R$ 50</div>
+                </div>
+                <div class="notes">
+                    <div class="notes-title">📌 Observações</div>
+                    <ul class="notes-list">
+                        <li>Padrão mais crítico: combinação de inadimplência alta, problemas documentais, pagamentos por terceiros com restrição (BGC) e relatos inconsistentes com rastreador.</li>
+                        <li>Modus operandi: dívidas acumuladas, incidente em local conhecido, comunicação tardia, veículo não recuperado.</li>
+                        <li>Oportunidades operacionais: contato com cliente, início ágil de tratativas de desconexões/alertas, acionamento rápido de Pronta Resposta.</li>
+                        <li>Oportunidades sistêmicas: integrar Safety Admin + Pipefy; ingerir dados Pix para detecção de vínculos de risco.</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="section-content">
+                <div class="subsection">
+                    <div class="vertical-group">
+                        <div class="node">
+                            <div class="node-title">Não recuperados</div>
+                            <div class="node-subtitle">89 casos</div>
+                            <div class="badge">Resultado R$ 6.7M</div>
+                        </div>
+                        <div class="node">
+                            <div class="node-title">Recuperados</div>
+                            <div class="node-subtitle">38 casos</div>
+                            <div class="badge positive">Resultado +R$ 2.7M</div>
+                        </div>
+                    </div>
+                    
+                    <div class="vertical-group">
+                        <div class="node">
+                            <div class="node-title">Perdas por roubo</div>
+                            <div class="node-subtitle">39 casos</div>
+                            <div class="badge">Resultado R$ 3.0M</div>
+                        </div>
+                        <div class="node">
+                            <div class="node-title">Perdas por estelionato</div>
+                            <div class="node-subtitle">50 casos</div>
+                            <div class="badge">Resultado R$ 3.7M</div>
+                        </div>
+                        <div style="height: 40px;"></div>
+                        <div class="node">
+                            <div class="node-title">Roubos</div>
+                            <div class="node-subtitle">2 casos</div>
+                            <div class="badge positive">Resultado +R$ 145k</div>
+                        </div>
+                        <div class="node">
+                            <div class="node-title">Estelionato</div>
+                            <div class="node-subtitle">36 casos</div>
+                            <div class="badge positive">Resultado +R$ 2.5M</div>
+                        </div>
+                    </div>
+                    
+                    <div class="vertical-group">
+                        <div style="height: 60px;"></div>
+                        <div class="node">
+                            <div class="node-title">Falsa comunicação de crime</div>
+                            <div class="node-subtitle">27 casos</div>
+                            <div class="badge">Resultado R$ 1.9M</div>
+                        </div>
+                        <div class="node">
+                            <div class="node-title">Apropriação indébita</div>
+                            <div class="node-subtitle">11 casos</div>
+                            <div class="badge">Resultado R$ 823k</div>
+                        </div>
+                        <div class="node">
+                            <div class="node-title">Uso de laranjas</div>
+                            <div class="node-subtitle">9 casos</div>
+                            <div class="badge">Resultado R$ 706k</div>
+                        </div>
+                        <div class="node">
+                            <div class="node-title">Fraude cadastral</div>
+                            <div class="node-subtitle">3 casos</div>
+                            <div class="badge">Resultado R$ 246k</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Seção 1.2: Gastos com guincho -->
+        <div class="section">
+            <div class="section-header">
+                <div class="node">
+                    <div class="node-title">Gastos com guincho por recolha R$ 10</div>
+                    <div class="badge">Resultado R$ 3.8M / UE R$ 32</div>
+                </div>
+                <div class="notes">
+                    <div class="notes-title">📌 Observações</div>
+                    <ul class="notes-list">
+                        <li>Padrão crítico: baixa devolução voluntária.</li>
+                        <li>Aumento de abandono em via pública (recorde Ago/2025: 88; média 2025: 64/mês).</li>
+                        <li>Impacto em custos de segunda via de chaves e tendência de alta em cegonha por expansão.</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="section-content">
+                <div class="vertical-group">
+                    <div class="node">
+                        <div class="node-title">Chofer</div>
+                        <div class="badge">Resultado R$ 2.2M</div>
+                    </div>
+                    <div class="node">
+                        <div class="node-title">Guincho</div>
+                        <div class="badge">Resultado R$ 1.2M</div>
+                    </div>
+                    <div class="node">
+                        <div class="node-title">Cegonha</div>
+                        <div class="badge">Resultado R$ 414k</div>
+                    </div>
+                </div>
+                
+                <div class="vertical-group">
+                    <div class="node">
+                        <div class="node-title">Recolha Inadimplência</div>
+                        <div class="badge">Resultado R$ 2.2M</div>
+                    </div>
+                    <div class="node">
+                        <div class="node-title">Recolha Inadimplência</div>
+                        <div class="badge">Resultado R$ 370k</div>
+                    </div>
+                    <div class="node">
+                        <div class="node-title">Safety</div>
+                        <div class="badge">Resultado R$ 830k</div>
+                    </div>
+                    <div class="node">
+                        <div class="node-title">Recolha Inadimplência</div>
+                        <div class="badge">Resultado R$ 102k</div>
+                    </div>
+                    <div class="node">
+                        <div class="node-title">Safety</div>
+                        <div class="badge">Resultado R$ 312k</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Seção 1.3: Gastos com Pronta Resposta -->
+        <div class="section">
+            <div class="section-header">
+                <div class="node">
+                    <div class="node-title">Gastos com Pronta Resposta</div>
+                    <div class="node-subtitle">UE R$ 30</div>
+                    <div class="badge">Resultado R$ 2.6M / UE R$ 42</div>
+                </div>
+                <div class="notes">
+                    <div class="notes-title">📌 Observações</div>
+                    <ul class="notes-list">
+                        <li>Distribuição por Regional (ago): SP 73%, POA 13%, FOR 3%, BSB 3%, CAMP 2%, STS 2%, REC 1%, BH 1%, FLN 1%, CWB 1%, GYN 1%.</li>
+                        <li>Pontos de atenção: desconexões por má instalação (novas cidades); rotina de redução de falsos positivos com Tech; aumento de ataques correlacionado às perdas consumadas/evitadas.</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="section-content">
+                <div class="vertical-group">
+                    <div class="node">
+                        <div class="node-title">Desconexão</div>
+                        <div class="badge">46% dos alertas</div>
+                    </div>
+                    <div class="node">
+                        <div class="node-title">Sem sinal</div>
+                        <div class="badge">30% dos alertas</div>
+                    </div>
+                    <div class="node">
+                        <div class="node-title">Zombie</div>
+                        <div class="badge">2% dos alertas</div>
+                    </div>
+                    <div class="node">
+                        <div class="node-title">Prevenção</div>
+                        <div class="badge">13% dos alertas</div>
+                    </div>
+                    <div class="node">
+                        <div class="node-title">CX Emergência</div>
+                        <div class="badge">8% dos alertas</div>
+                    </div>
+                    <div class="node">
+                        <div class="node-title">Fronteira</div>
+                        <div class="badge">1% dos alertas</div>
+                    </div>
+                </div>
+                
+                <div class="vertical-group">
+                    <div class="node">
+                        <div class="node-title">Positivo</div>
+                        <div class="badge">59% dos alertas</div>
+                    </div>
+                    <div class="node">
+                        <div class="node-title">Falso Positivo</div>
+                        <div class="badge">41% dos alertas</div>
+                    </div>
+                    <div class="node">
+                        <div class="node-title">Positivo</div>
+                        <div class="badge">59% dos alertas</div>
+                    </div>
+                    <div class="node">
+                        <div class="node-title">Falso Positivo</div>
+                        <div class="badge">41% dos alertas</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Seção 1.4: Seized — Frota apreendida -->
+        <div class="section">
+            <div class="section-header">
+                <div class="node">
+                    <div class="node-title">Seized — Frota apreendida</div>
+                    <div class="node-subtitle">Manter < 21 | Média 39 em andamento</div>
+                </div>
+                <div class="notes">
+                    <div class="notes-title">📌 Observações</div>
+                    <ul class="notes-list">
+                        <li>Observações: casos judiciais subiram de 17 para 27 (YTD).</li>
+                        <li>Gap de prazo: adm 3–15 dias vs judiciais 100–300 dias.</li>
+                        <li>Alta em apreensões por ocorrências criminais.</li>
+                        <li>Ações: procuração ECAR (piloto LM); visitas a Delegacias; verificação de veículos em perícia; relacionamento com escrivães; monitoramento via DDL; foco >200 dias; alertas de risco de leilão.</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="section-content">
+                <div class="vertical-group">
+                    <div class="node">
+                        <div class="node-title">Infrações de trânsito</div>
+                        <div class="badge">30,3% das apreensões</div>
+                    </div>
+                    <div class="node">
+                        <div class="node-title">Recuperação roubo/furto</div>
+                        <div class="badge">23,2% das apreensões</div>
+                    </div>
+                    <div class="node">
+                        <div class="node-title">Acidente de trânsito</div>
+                        <div class="badge">8,3% das apreensões</div>
+                    </div>
+                    <div class="node">
+                        <div class="node-title">Restrição de circulação</div>
+                        <div class="badge">6,5% das apreensões</div>
+                    </div>
+                    <div class="node">
+                        <div class="node-title">Ocorrências criminais</div>
+                        <div class="badge">21,4% das apreensões</div>
+                    </div>
+                    <div class="node">
+                        <div class="node-title">Outros motivos</div>
+                        <div class="badge">9,6% das apreensões</div>
+                    </div>
+                </div>
+                
+                <div class="vertical-group">
+                    <div class="node">
+                        <div class="node-title">Conduzir sem CNH</div>
+                        <div class="badge">12,6% das multas</div>
+                    </div>
+                    <div class="node">
+                        <div class="node-title">Estacionamento irregular</div>
+                        <div class="badge">32,8% das multas</div>
+                    </div>
+                    <div class="node">
+                        <div class="node-title">Pneu careca</div>
+                        <div class="badge">13,4% das multas</div>
+                    </div>
+                    <div class="node">
+                        <div class="node-title">Recusa bafômetro</div>
+                        <div class="badge">11,8% das multas</div>
+                    </div>
+                    <div style="height: 40px;"></div>
+                    <div class="node">
+                        <div class="node-title">Tráfico</div>
+                        <div class="badge">39,7% das multas</div>
+                    </div>
+                    <div class="node">
+                        <div class="node-title">Assalto</div>
+                        <div class="badge">27,2% das multas</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Seção 1.5: Sinistros de Perda Total -->
+        <div class="section">
+            <div class="section-header">
+                <div class="node">
+                    <div class="node-title">Sinistros de Perda Total</div>
+                    <div class="badge">234 carros</div>
+                </div>
+                <div class="notes">
+                    <div class="notes-title">📌 Observações</div>
+                    <ul class="notes-list">
+                        <li>Padrão crítico: custos de ~R$500k/ano (2023) → R$1,6M (até ago/2025).</li>
+                        <li>Risco: retroalimentação de desmanches; pagamentos sem orçamentos/garantia; falta de documentação (BO, CNH, CRLV, croqui, fotos); risco reputacional CNPJ→CPF.</li>
+                        <li>Recomendações: Política de Sinistros (60 dias), rede de oficinas credenciadas, BO obrigatório, aprovação L3+ com auditoria prévia.</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="section-content">
+                <div class="vertical-group">
+                    <div class="node">
+                        <div class="node-title">São Paulo</div>
+                        <div class="badge">213 carros | 176 avaliados</div>
+                    </div>
+                    <div class="node">
+                        <div class="node-title">Porto Alegre</div>
+                        <div class="badge">20 carros</div>
+                    </div>
+                    <div class="node">
+                        <div class="node-title">Outras cidades</div>
+                        <div class="badge">1 carro</div>
+                    </div>
+                </div>
+                
+                <div class="vertical-group">
+                    <div class="node">
+                        <div class="node-title">Venda no estado</div>
+                        <div class="badge">117 carros</div>
+                    </div>
+                    <div class="node">
+                        <div class="node-title">PT</div>
+                        <div class="badge">1 carro</div>
+                    </div>
+                    <div class="node">
+                        <div class="node-title">Manutenção</div>
+                        <div class="badge">58 carros</div>
+                    </div>
+                    <div class="node">
+                        <div class="node-title">Venda no estado</div>
+                        <div class="badge">6 carros</div>
+                    </div>
+                    <div class="node">
+                        <div class="node-title">PT</div>
+                        <div class="badge">4 carros</div>
+                    </div>
+                    <div class="node">
+                        <div class="node-title">Manutenção</div>
+                        <div class="badge">10 carros</div>
+                    </div>
+                    <div class="node">
+                        <div class="node-title">Manutenção</div>
+                        <div class="badge">1 carro</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
