@@ -12,341 +12,162 @@
         }
 
         :root {
-            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            --success-gradient: linear-gradient(135deg, #56d2a4 0%, #48bb8e 100%);
-            --danger-gradient: linear-gradient(135deg, #ee5a6f 0%, #f47373 100%);
-            --warning-gradient: linear-gradient(135deg, #feca57 0%, #ff9ff3 100%);
-            --dark-gradient: linear-gradient(135deg, #2d3561 0%, #182848 100%);
-            --bg-gradient: linear-gradient(135deg, #f5f7fa 0%, #e9ecef 100%);
-            --card-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
-            --hover-shadow: 0 25px 80px rgba(0, 0, 0, 0.15);
-            --text-primary: #2c3e50;
-            --text-secondary: #7f8c8d;
-            --border-light: rgba(236, 240, 241, 0.8);
+            --primary-color: #2563eb;
+            --secondary-color: #64748b;
+            --success-color: #10b981;
+            --danger-color: #ef4444;
+            --warning-color: #f59e0b;
+            --background: #f8fafc;
+            --card-bg: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --border-color: #e2e8f0;
+            --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
         }
 
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: var(--bg-gradient);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: var(--background);
             color: var(--text-primary);
-            line-height: 1.6;
+            line-height: 1.5;
             min-height: 100vh;
-            overflow-x: auto;
-            position: relative;
-        }
-
-        body::before {
-            content: '';
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: 
-                radial-gradient(circle at 20% 80%, rgba(102, 126, 234, 0.1) 0%, transparent 50%),
-                radial-gradient(circle at 80% 20%, rgba(118, 75, 162, 0.1) 0%, transparent 50%),
-                radial-gradient(circle at 40% 40%, rgba(86, 210, 164, 0.05) 0%, transparent 50%);
-            pointer-events: none;
-            z-index: 0;
+            padding: 20px;
         }
 
         .container {
-            position: relative;
-            z-index: 1;
             max-width: 100%;
-            margin: 40px auto;
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(20px);
-            border-radius: 24px;
-            box-shadow: var(--card-shadow);
-            padding: 60px 40px;
-            overflow: visible;
+            margin: 0 auto;
+            background: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            padding: 40px;
+            overflow-x: auto;
         }
 
         h1 {
-            font-size: 42px;
-            font-weight: 800;
-            margin-bottom: 60px;
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 40px;
             text-align: center;
-            background: var(--primary-gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            position: relative;
-        }
-
-        h1::after {
-            content: '';
-            position: absolute;
-            bottom: -20px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 100px;
-            height: 4px;
-            background: var(--primary-gradient);
-            border-radius: 2px;
+            color: var(--text-primary);
         }
 
         .flowchart-section {
-            margin-bottom: 100px;
+            margin-bottom: 60px;
             position: relative;
-            padding: 40px 0;
-        }
-
-        .flowchart-section::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -40px;
-            right: -40px;
-            bottom: 0;
-            background: linear-gradient(to right, transparent, rgba(102, 126, 234, 0.03), transparent);
-            border-radius: 20px;
-            z-index: -1;
+            min-height: 200px;
         }
 
         .section-wrapper {
-            display: flex;
-            align-items: flex-start;
-            gap: 60px;
             position: relative;
+            display: flex;
+            gap: 40px;
+            align-items: flex-start;
+            padding: 20px 0;
         }
 
         .flowchart-container {
             flex: 1;
-            display: flex;
-            gap: 80px;
-            align-items: flex-start;
             position: relative;
-            padding: 20px 0;
+            display: flex;
+            gap: 40px;
+            align-items: flex-start;
+            overflow-x: auto;
+            padding-bottom: 20px;
         }
 
         .node-column {
             display: flex;
             flex-direction: column;
-            gap: 30px;
-            min-width: 320px;
+            gap: 15px;
+            min-width: 200px;
             position: relative;
         }
 
         .node {
-            background: white;
-            border: 2px solid transparent;
-            background-image: linear-gradient(white, white), var(--primary-gradient);
-            background-origin: border-box;
-            background-clip: padding-box, border-box;
-            border-radius: 20px;
-            padding: 30px;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 12px 16px;
             position: relative;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.2s ease;
             cursor: pointer;
-            overflow: hidden;
-        }
-
-        .node::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: var(--primary-gradient);
-            opacity: 0;
-            transition: opacity 0.4s ease;
-            z-index: -1;
+            min-width: 180px;
+            max-width: 250px;
         }
 
         .node:hover {
-            transform: translateY(-5px) scale(1.02);
-            box-shadow: var(--hover-shadow);
-        }
-
-        .node:hover::before {
-            opacity: 0.05;
+            border-color: var(--primary-color);
+            box-shadow: var(--shadow-lg);
+            transform: translateY(-2px);
         }
 
         .node.root {
-            background: var(--dark-gradient);
+            background: var(--primary-color);
             color: white;
-            border: none;
-            transform: scale(1.1);
-            box-shadow: 0 30px 80px rgba(45, 53, 97, 0.3);
+            border-color: var(--primary-color);
+            font-weight: 600;
         }
 
         .node.root:hover {
-            transform: scale(1.15) translateY(-5px);
-        }
-
-        .node.danger {
-            background-image: linear-gradient(white, white), var(--danger-gradient);
-        }
-
-        .node.success {
-            background-image: linear-gradient(white, white), var(--success-gradient);
-        }
-
-        .node.warning {
-            background-image: linear-gradient(white, white), var(--warning-gradient);
-        }
-
-        .node-header {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            margin-bottom: 15px;
-        }
-
-        .node-icon {
-            width: 40px;
-            height: 40px;
-            background: var(--primary-gradient);
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
-            color: white;
-            flex-shrink: 0;
-        }
-
-        .node.root .node-icon {
-            background: rgba(255, 255, 255, 0.2);
+            background: #1d4ed8;
+            border-color: #1d4ed8;
         }
 
         .node-title {
-            font-size: 18px;
-            font-weight: 700;
-            line-height: 1.3;
-            flex: 1;
+            font-size: 14px;
+            font-weight: 600;
+            line-height: 1.4;
+            margin-bottom: 4px;
         }
 
         .node-subtitle {
-            font-size: 14px;
+            font-size: 12px;
             color: var(--text-secondary);
-            margin-bottom: 15px;
-            font-weight: 500;
+            margin-bottom: 8px;
         }
 
         .node.root .node-subtitle {
-            color: rgba(255, 255, 255, 0.8);
+            color: rgba(255, 255, 255, 0.9);
         }
 
-        .node-stats {
-            display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
-            margin-top: 20px;
-        }
-
-        .stat-badge {
-            background: rgba(102, 126, 234, 0.1);
-            color: #667eea;
-            padding: 8px 16px;
-            border-radius: 12px;
-            font-size: 13px;
-            font-weight: 600;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            transition: all 0.3s ease;
-        }
-
-        .stat-badge:hover {
-            background: rgba(102, 126, 234, 0.2);
-            transform: scale(1.05);
-        }
-
-        .stat-badge.danger {
-            background: rgba(238, 90, 111, 0.1);
-            color: #ee5a6f;
-        }
-
-        .stat-badge.success {
-            background: rgba(86, 210, 164, 0.1);
-            color: #56d2a4;
-        }
-
-        .stat-badge.warning {
-            background: rgba(254, 202, 87, 0.1);
-            color: #fca557;
-        }
-
-        .result-highlight {
-            background: var(--danger-gradient);
-            color: white;
-            padding: 12px 24px;
-            border-radius: 16px;
-            font-size: 16px;
-            font-weight: 700;
-            margin-top: 20px;
+        .result-badge {
             display: inline-block;
-            box-shadow: 0 10px 30px rgba(238, 90, 111, 0.3);
-            animation: pulse 2s infinite;
+            background: #fee2e2;
+            color: var(--danger-color);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-top: 4px;
         }
 
-        .result-highlight.positive {
-            background: var(--success-gradient);
-            box-shadow: 0 10px 30px rgba(86, 210, 164, 0.3);
-        }
-
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.02); }
-            100% { transform: scale(1); }
+        .result-badge.positive {
+            background: #d1fae5;
+            color: var(--success-color);
         }
 
         .notes-container {
-            position: absolute;
-            right: -440px;
-            top: 0;
-            width: 400px;
-            background: white;
-            border-radius: 20px;
-            padding: 30px;
-            box-shadow: var(--card-shadow);
-            border: 2px solid var(--border-light);
-            opacity: 0;
-            animation: slideIn 0.6s ease forwards;
-            animation-delay: 0.3s;
-        }
-
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateX(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
-        }
-
-        .notes-header {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 20px;
-            padding-bottom: 15px;
-            border-bottom: 2px solid var(--border-light);
-        }
-
-        .notes-icon {
-            width: 40px;
-            height: 40px;
-            background: var(--warning-gradient);
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
+            position: sticky;
+            top: 20px;
+            width: 350px;
+            background: #fffbeb;
+            border: 1px solid #fcd34d;
+            border-radius: 8px;
+            padding: 16px;
+            margin-left: auto;
+            flex-shrink: 0;
         }
 
         .notes-title {
-            font-size: 18px;
-            font-weight: 700;
-            color: var(--text-primary);
+            font-size: 14px;
+            font-weight: 600;
+            color: #92400e;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
         .notes-list {
@@ -354,62 +175,57 @@
         }
 
         .notes-list li {
-            font-size: 14px;
-            color: var(--text-secondary);
-            margin-bottom: 12px;
-            padding-left: 28px;
+            font-size: 12px;
+            color: #78350f;
+            margin-bottom: 8px;
+            padding-left: 16px;
             position: relative;
-            line-height: 1.6;
+            line-height: 1.5;
         }
 
         .notes-list li:before {
-            content: '→';
+            content: '•';
             position: absolute;
             left: 0;
-            color: #feca57;
+            color: #f59e0b;
             font-weight: bold;
-            font-size: 16px;
         }
 
         /* SVG Connections */
-        .connection-svg {
+        svg.connections {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
             pointer-events: none;
-            z-index: -1;
+            z-index: 1;
         }
 
         .connection-line {
             fill: none;
-            stroke: #e0e6ed;
-            stroke-width: 3;
-            stroke-dasharray: 8 4;
-            animation: dash 20s linear infinite;
-        }
-
-        @keyframes dash {
-            to {
-                stroke-dashoffset: -100;
-            }
+            stroke: var(--border-color);
+            stroke-width: 2;
         }
 
         .connection-line.active {
-            stroke: #667eea;
-            stroke-width: 4;
-            stroke-dasharray: none;
-            filter: drop-shadow(0 0 10px rgba(102, 126, 234, 0.3));
+            stroke: var(--primary-color);
+            stroke-width: 2.5;
         }
 
-        /* Responsive Design */
-        @media (max-width: 1400px) {
+        /* Hierarquia visual */
+        .level-1 { margin-left: 0; }
+        .level-2 { margin-left: 20px; }
+        .level-3 { margin-left: 40px; }
+        .level-4 { margin-left: 60px; }
+
+        /* Responsividade */
+        @media (max-width: 1200px) {
             .notes-container {
                 position: static;
-                margin-top: 40px;
                 width: 100%;
-                max-width: 600px;
+                margin-top: 20px;
+                margin-left: 0;
             }
 
             .section-wrapper {
@@ -419,72 +235,37 @@
 
         @media (max-width: 768px) {
             .container {
-                margin: 20px;
-                padding: 30px 20px;
+                padding: 20px;
             }
 
             h1 {
-                font-size: 28px;
+                font-size: 24px;
             }
 
             .flowchart-container {
-                flex-direction: column;
-                gap: 40px;
-            }
-
-            .node-column {
-                min-width: 100%;
+                gap: 20px;
             }
 
             .node {
-                padding: 20px;
+                min-width: 150px;
+                padding: 10px 12px;
             }
-        }
 
-        /* Loading Animation */
-        .loading-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(255, 255, 255, 0.95);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 9999;
-            animation: fadeOut 1s ease forwards;
-            animation-delay: 1s;
-            pointer-events: none;
-        }
-
-        @keyframes fadeOut {
-            to {
-                opacity: 0;
+            .node-title {
+                font-size: 13px;
             }
-        }
 
-        .loader {
-            width: 60px;
-            height: 60px;
-            border: 4px solid transparent;
-            border-top-color: #667eea;
-            border-radius: 50%;
-            animation: spin 1s ease infinite;
-        }
+            .node-subtitle {
+                font-size: 11px;
+            }
 
-        @keyframes spin {
-            to {
-                transform: rotate(360deg);
+            .result-badge {
+                font-size: 10px;
             }
         }
     </style>
 </head>
 <body>
-    <div class="loading-overlay">
-        <div class="loader"></div>
-    </div>
-
     <div class="container">
         <h1>Gestão de Ativos — Loss Prevention</h1>
         
@@ -492,162 +273,85 @@
         <div class="flowchart-section">
             <div class="section-wrapper">
                 <div class="flowchart-container">
-                    <svg class="connection-svg">
-                        <!-- Conexões da primeira coluna para a segunda -->
-                        <path class="connection-line active" d="M 320 100 Q 380 100 380 150 L 400 150" />
-                        <path class="connection-line active" d="M 320 250 Q 380 250 380 300 L 400 300" />
-                        
-                        <!-- Conexões da segunda para a terceira coluna -->
-                        <path class="connection-line" d="M 720 120 Q 780 120 780 140 L 800 140" />
-                        <path class="connection-line" d="M 720 220 Q 780 220 780 260 L 800 260" />
-                        <path class="connection-line" d="M 720 400 Q 780 400 780 380 L 800 380" />
-                        <path class="connection-line" d="M 720 500 Q 780 500 780 500 L 800 500" />
-                    </svg>
-
-                    <div class="node-column">
-                        <div class="node root">
-                            <div class="node-header">
-                                <div class="node-icon">🎯</div>
-                                <div class="node-title">Perder no máximo 10 carros/mês</div>
-                            </div>
+                    <svg class="connections" width="100%" height="100%"></svg>
+                    
+                    <div class="node-column level-1">
+                        <div class="node root" data-id="1.1">
+                            <div class="node-title">Perder no máximo 10 carros/mês</div>
                             <div class="node-subtitle">Meta UE R$ 64</div>
-                            <div class="result-highlight">Resultado R$ 6.7M / UE R$ 50</div>
+                            <div class="result-badge">Resultado R$ 6.7M / UE R$ 50</div>
                         </div>
                     </div>
 
-                    <div class="node-column">
-                        <div class="node danger">
-                            <div class="node-header">
-                                <div class="node-icon">🚫</div>
-                                <div class="node-title">Não recuperados</div>
-                            </div>
+                    <div class="node-column level-2">
+                        <div class="node" data-id="1.1.1" data-parent="1.1">
+                            <div class="node-title">Não recuperados</div>
                             <div class="node-subtitle">89 casos</div>
-                            <div class="node-stats">
-                                <span class="stat-badge danger">📊 89 casos</span>
-                                <span class="stat-badge danger">💰 R$ 6.7M</span>
-                            </div>
-                            <div class="result-highlight">Impacto: R$ 6.7M</div>
+                            <div class="result-badge">Resultado R$ 6.7M</div>
                         </div>
-
-                        <div class="node success">
-                            <div class="node-header">
-                                <div class="node-icon">✅</div>
-                                <div class="node-title">Recuperados</div>
-                            </div>
+                        <div class="node" data-id="1.1.2" data-parent="1.1">
+                            <div class="node-title">Recuperados</div>
                             <div class="node-subtitle">38 casos</div>
-                            <div class="node-stats">
-                                <span class="stat-badge success">📊 38 casos</span>
-                                <span class="stat-badge success">💰 +R$ 2.7M</span>
-                            </div>
-                            <div class="result-highlight positive">Economia: +R$ 2.7M</div>
+                            <div class="result-badge positive">Resultado +R$ 2.7M</div>
                         </div>
                     </div>
 
-                    <div class="node-column">
-                        <div class="node danger">
-                            <div class="node-header">
-                                <div class="node-icon">🔫</div>
-                                <div class="node-title">Perdas por roubo</div>
-                            </div>
-                            <div class="node-stats">
-                                <span class="stat-badge danger">39 casos</span>
-                                <span class="stat-badge danger">R$ 3.0M</span>
-                            </div>
+                    <div class="node-column level-3">
+                        <div class="node" data-id="1.1.1.1" data-parent="1.1.1">
+                            <div class="node-title">Perdas por roubo</div>
+                            <div class="node-subtitle">39 casos</div>
+                            <div class="result-badge">Resultado R$ 3.0M</div>
                         </div>
-
-                        <div class="node danger">
-                            <div class="node-header">
-                                <div class="node-icon">💳</div>
-                                <div class="node-title">Perdas por estelionato</div>
-                            </div>
-                            <div class="node-stats">
-                                <span class="stat-badge danger">50 casos</span>
-                                <span class="stat-badge danger">R$ 3.7M</span>
-                            </div>
+                        <div class="node" data-id="1.1.1.2" data-parent="1.1.1">
+                            <div class="node-title">Perdas por estelionato</div>
+                            <div class="node-subtitle">50 casos</div>
+                            <div class="result-badge">Resultado R$ 3.7M</div>
                         </div>
-
-                        <div class="node success">
-                            <div class="node-header">
-                                <div class="node-icon">🔍</div>
-                                <div class="node-title">Roubos Recuperados</div>
-                            </div>
-                            <div class="node-stats">
-                                <span class="stat-badge success">2 casos</span>
-                                <span class="stat-badge success">+R$ 145k</span>
-                            </div>
+                        <div style="height: 20px;"></div>
+                        <div class="node" data-id="1.1.2.1" data-parent="1.1.2">
+                            <div class="node-title">Roubos</div>
+                            <div class="node-subtitle">2 casos</div>
+                            <div class="result-badge positive">Resultado +R$ 145k</div>
                         </div>
-
-                        <div class="node success">
-                            <div class="node-header">
-                                <div class="node-icon">💡</div>
-                                <div class="node-title">Estelionato Evitado</div>
-                            </div>
-                            <div class="node-stats">
-                                <span class="stat-badge success">36 casos</span>
-                                <span class="stat-badge success">+R$ 2.5M</span>
-                            </div>
+                        <div class="node" data-id="1.1.2.2" data-parent="1.1.2">
+                            <div class="node-title">Estelionato</div>
+                            <div class="node-subtitle">36 casos</div>
+                            <div class="result-badge positive">Resultado +R$ 2.5M</div>
                         </div>
                     </div>
 
-                    <div class="node-column">
-                        <div class="node warning">
-                            <div class="node-header">
-                                <div class="node-icon">⚠️</div>
-                                <div class="node-title">Falsa comunicação</div>
-                            </div>
-                            <div class="node-stats">
-                                <span class="stat-badge warning">27 casos</span>
-                                <span class="stat-badge danger">R$ 1.9M</span>
-                            </div>
+                    <div class="node-column level-4">
+                        <div style="height: 70px;"></div>
+                        <div class="node" data-id="1.1.1.2.1" data-parent="1.1.1.2">
+                            <div class="node-title">Falsa comunicação de crime</div>
+                            <div class="node-subtitle">27 casos</div>
+                            <div class="result-badge">Resultado R$ 1.9M</div>
                         </div>
-
-                        <div class="node warning">
-                            <div class="node-header">
-                                <div class="node-icon">🔒</div>
-                                <div class="node-title">Apropriação indébita</div>
-                            </div>
-                            <div class="node-stats">
-                                <span class="stat-badge warning">11 casos</span>
-                                <span class="stat-badge danger">R$ 823k</span>
-                            </div>
+                        <div class="node" data-id="1.1.1.2.2" data-parent="1.1.1.2">
+                            <div class="node-title">Apropriação indébita</div>
+                            <div class="node-subtitle">11 casos</div>
+                            <div class="result-badge">Resultado R$ 823k</div>
                         </div>
-
-                        <div class="node warning">
-                            <div class="node-header">
-                                <div class="node-icon">👥</div>
-                                <div class="node-title">Uso de laranjas</div>
-                            </div>
-                            <div class="node-stats">
-                                <span class="stat-badge warning">9 casos</span>
-                                <span class="stat-badge danger">R$ 706k</span>
-                            </div>
+                        <div class="node" data-id="1.1.1.2.3" data-parent="1.1.1.2">
+                            <div class="node-title">Uso de laranjas</div>
+                            <div class="node-subtitle">9 casos</div>
+                            <div class="result-badge">Resultado R$ 706k</div>
                         </div>
-
-                        <div class="node warning">
-                            <div class="node-header">
-                                <div class="node-icon">📝</div>
-                                <div class="node-title">Fraude cadastral</div>
-                            </div>
-                            <div class="node-stats">
-                                <span class="stat-badge warning">3 casos</span>
-                                <span class="stat-badge danger">R$ 246k</span>
-                            </div>
+                        <div class="node" data-id="1.1.1.2.4" data-parent="1.1.1.2">
+                            <div class="node-title">Fraude cadastral</div>
+                            <div class="node-subtitle">3 casos</div>
+                            <div class="result-badge">Resultado R$ 246k</div>
                         </div>
                     </div>
                 </div>
 
                 <div class="notes-container">
-                    <div class="notes-header">
-                        <div class="notes-icon">📌</div>
-                        <div class="notes-title">Insights & Observações</div>
-                    </div>
+                    <div class="notes-title">📌 Observações</div>
                     <ul class="notes-list">
-                        <li>Padrão crítico identificado: combinação de inadimplência alta com problemas documentais</li>
-                        <li>Pagamentos por terceiros com restrição (BGC) e relatos inconsistentes com rastreador</li>
-                        <li>Modus operandi: dívidas acumuladas, incidente em local conhecido, comunicação tardia</li>
-                        <li>Oportunidades: contato ágil com cliente, início rápido de tratativas de desconexões</li>
-                        <li>Integração necessária: Safety Admin + Pipefy para melhor gestão</li>
-                        <li>Análise de dados Pix pode detectar vínculos de risco antecipadamente</li>
+                        <li>Padrão mais crítico: combinação de inadimplência alta, problemas documentais, pagamentos por terceiros com restrição (BGC) e relatos inconsistentes com rastreador.</li>
+                        <li>Modus operandi: dívidas acumuladas, incidente em local conhecido, comunicação tardia, veículo não recuperado.</li>
+                        <li>Oportunidades operacionais: contato com cliente, início ágil de tratativas de desconexões/alertas, acionamento rápido de Pronta Resposta.</li>
+                        <li>Oportunidades sistêmicas: integrar Safety Admin + Pipefy; ingerir dados Pix para detecção de vínculos de risco.</li>
                     </ul>
                 </div>
             </div>
@@ -657,133 +361,62 @@
         <div class="flowchart-section">
             <div class="section-wrapper">
                 <div class="flowchart-container">
-                    <svg class="connection-svg">
-                        <path class="connection-line active" d="M 320 150 Q 380 150 380 100 L 400 100" />
-                        <path class="connection-line active" d="M 320 150 Q 380 150 380 200 L 400 200" />
-                        <path class="connection-line active" d="M 320 150 Q 380 150 380 300 L 400 300" />
-                        
-                        <path class="connection-line" d="M 720 100 Q 780 100 780 120 L 800 120" />
-                        <path class="connection-line" d="M 720 100 Q 780 100 780 220 L 800 220" />
-                        <path class="connection-line" d="M 720 200 Q 780 200 780 320 L 800 320" />
-                        <path class="connection-line" d="M 720 300 Q 780 300 780 420 L 800 420" />
-                        <path class="connection-line" d="M 720 300 Q 780 300 780 520 L 800 520" />
-                    </svg>
-
-                    <div class="node-column">
-                        <div class="node root">
-                            <div class="node-header">
-                                <div class="node-icon">🚛</div>
-                                <div class="node-title">Gastos com guincho por recolha R$ 10</div>
-                            </div>
-                            <div class="result-highlight">Resultado R$ 3.8M / UE R$ 32</div>
+                    <svg class="connections" width="100%" height="100%"></svg>
+                    
+                    <div class="node-column level-1">
+                        <div class="node root" data-id="1.2">
+                            <div class="node-title">Gastos com guincho por recolha R$ 10</div>
+                            <div class="result-badge">Resultado R$ 3.8M / UE R$ 32</div>
                         </div>
                     </div>
 
-                    <div class="node-column">
-                        <div class="node danger">
-                            <div class="node-header">
-                                <div class="node-icon">🚗</div>
-                                <div class="node-title">Chofer</div>
-                            </div>
-                            <div class="node-stats">
-                                <span class="stat-badge danger">💰 R$ 2.2M</span>
-                                <span class="stat-badge">📈 Principal custo</span>
-                            </div>
+                    <div class="node-column level-2">
+                        <div class="node" data-id="1.2.1" data-parent="1.2">
+                            <div class="node-title">Chofer</div>
+                            <div class="result-badge">Resultado R$ 2.2M</div>
                         </div>
-
-                        <div class="node warning">
-                            <div class="node-header">
-                                <div class="node-icon">🚚</div>
-                                <div class="node-title">Guincho</div>
-                            </div>
-                            <div class="node-stats">
-                                <span class="stat-badge warning">💰 R$ 1.2M</span>
-                                <span class="stat-badge">📊 32% do total</span>
-                            </div>
+                        <div class="node" data-id="1.2.2" data-parent="1.2">
+                            <div class="node-title">Guincho</div>
+                            <div class="result-badge">Resultado R$ 1.2M</div>
                         </div>
-
-                        <div class="node">
-                            <div class="node-header">
-                                <div class="node-icon">🚛</div>
-                                <div class="node-title">Cegonha</div>
-                            </div>
-                            <div class="node-stats">
-                                <span class="stat-badge">💰 R$ 414k</span>
-                                <span class="stat-badge">📈 Tendência alta</span>
-                            </div>
+                        <div class="node" data-id="1.2.3" data-parent="1.2">
+                            <div class="node-title">Cegonha</div>
+                            <div class="result-badge">Resultado R$ 414k</div>
                         </div>
                     </div>
 
-                    <div class="node-column">
-                        <div class="node danger">
-                            <div class="node-header">
-                                <div class="node-icon">💳</div>
-                                <div class="node-title">Recolha Inadimplência</div>
-                            </div>
-                            <div class="node-stats">
-                                <span class="stat-badge danger">R$ 2.2M</span>
-                                <span class="stat-badge">Chofer</span>
-                            </div>
+                    <div class="node-column level-3">
+                        <div class="node" data-id="1.2.1.1" data-parent="1.2.1">
+                            <div class="node-title">Recolha Inadimplência</div>
+                            <div class="result-badge">Resultado R$ 2.2M</div>
                         </div>
-
-                        <div class="node warning">
-                            <div class="node-header">
-                                <div class="node-icon">⚠️</div>
-                                <div class="node-title">Safety</div>
-                            </div>
-                            <div class="node-stats">
-                                <span class="stat-badge warning">R$ 830k</span>
-                                <span class="stat-badge">Guincho</span>
-                            </div>
+                        <div style="height: 15px;"></div>
+                        <div class="node" data-id="1.2.2.1" data-parent="1.2.2">
+                            <div class="node-title">Recolha Inadimplência</div>
+                            <div class="result-badge">Resultado R$ 370k</div>
                         </div>
-
-                        <div class="node">
-                            <div class="node-header">
-                                <div class="node-icon">📍</div>
-                                <div class="node-title">Recolha Inadimplência</div>
-                            </div>
-                            <div class="node-stats">
-                                <span class="stat-badge">R$ 370k</span>
-                                <span class="stat-badge">Guincho</span>
-                            </div>
+                        <div class="node" data-id="1.2.2.2" data-parent="1.2.2">
+                            <div class="node-title">Safety</div>
+                            <div class="result-badge">Resultado R$ 830k</div>
                         </div>
-
-                        <div class="node">
-                            <div class="node-header">
-                                <div class="node-icon">🔧</div>
-                                <div class="node-title">Recolha Inadimplência</div>
-                            </div>
-                            <div class="node-stats">
-                                <span class="stat-badge">R$ 102k</span>
-                                <span class="stat-badge">Cegonha</span>
-                            </div>
+                        <div style="height: 15px;"></div>
+                        <div class="node" data-id="1.2.3.1" data-parent="1.2.3">
+                            <div class="node-title">Recolha Inadimplência</div>
+                            <div class="result-badge">Resultado R$ 102k</div>
                         </div>
-
-                        <div class="node">
-                            <div class="node-header">
-                                <div class="node-icon">🛡️</div>
-                                <div class="node-title">Safety</div>
-                            </div>
-                            <div class="node-stats">
-                                <span class="stat-badge">R$ 312k</span>
-                                <span class="stat-badge">Cegonha</span>
-                            </div>
+                        <div class="node" data-id="1.2.3.2" data-parent="1.2.3">
+                            <div class="node-title">Safety</div>
+                            <div class="result-badge">Resultado R$ 312k</div>
                         </div>
                     </div>
                 </div>
 
                 <div class="notes-container">
-                    <div class="notes-header">
-                        <div class="notes-icon">📌</div>
-                        <div class="notes-title">Insights & Observações</div>
-                    </div>
+                    <div class="notes-title">📌 Observações</div>
                     <ul class="notes-list">
-                        <li>Padrão crítico: baixa taxa de devolução voluntária impactando custos</li>
-                        <li>Aumento significativo de abandono em via pública (recorde Ago/2025: 88 casos)</li>
-                        <li>Média mensal 2025: 64 abandonos/mês - tendência crescente preocupante</li>
-                        <li>Impacto adicional: custos de segunda via de chaves aumentando</li>
-                        <li>Tendência de alta em cegonha devido à expansão geográfica</li>
-                        <li>Necessidade urgente de programa de incentivo à devolução voluntária</li>
+                        <li>Padrão crítico: baixa devolução voluntária.</li>
+                        <li>Aumento de abandono em via pública (recorde Ago/2025: 88; média 2025: 64/mês).</li>
+                        <li>Impacto em custos de segunda via de chaves e tendência de alta em cegonha por expansão.</li>
                     </ul>
                 </div>
             </div>
@@ -793,122 +426,69 @@
         <div class="flowchart-section">
             <div class="section-wrapper">
                 <div class="flowchart-container">
-                    <svg class="connection-svg">
-                        <path class="connection-line active" d="M 320 150 L 400 150" />
-                        <path class="connection-line" d="M 720 150 L 800 150" />
-                    </svg>
-
-                    <div class="node-column">
-                        <div class="node root">
-                            <div class="node-header">
-                                <div class="node-icon">🚨</div>
-                                <div class="node-title">Gastos com Pronta Resposta</div>
-                            </div>
-                            <div class="node-subtitle">Meta UE R$ 30</div>
-                            <div class="result-highlight">Resultado R$ 2.6M / UE R$ 42</div>
+                    <svg class="connections" width="100%" height="100%"></svg>
+                    
+                    <div class="node-column level-1">
+                        <div class="node root" data-id="1.3">
+                            <div class="node-title">Gastos com Pronta Resposta</div>
+                            <div class="node-subtitle">UE R$ 30</div>
+                            <div class="result-badge">Resultado R$ 2.6M / UE R$ 42</div>
                         </div>
                     </div>
 
-                    <div class="node-column">
-                        <div class="node danger">
-                            <div class="node-header">
-                                <div class="node-icon">🔌</div>
-                                <div class="node-title">Desconexão</div>
-                            </div>
-                            <div class="node-stats">
-                                <span class="stat-badge danger">46% dos alertas</span>
-                                <span class="stat-badge">🚨 Crítico</span>
-                            </div>
+                    <div class="node-column level-2">
+                        <div class="node" data-id="1.3.1" data-parent="1.3">
+                            <div class="node-title">Desconexão</div>
+                            <div class="result-badge">46% dos alertas</div>
                         </div>
-
-                        <div class="node warning">
-                            <div class="node-header">
-                                <div class="node-icon">📡</div>
-                                <div class="node-title">Sem sinal</div>
-                            </div>
-                            <div class="node-stats">
-                                <span class="stat-badge warning">30% dos alertas</span>
-                            </div>
+                        <div class="node" data-id="1.3.2" data-parent="1.3">
+                            <div class="node-title">Sem sinal</div>
+                            <div class="result-badge">30% dos alertas</div>
                         </div>
-
-                        <div class="node">
-                            <div class="node-header">
-                                <div class="node-icon">👻</div>
-                                <div class="node-title">Zombie</div>
-                            </div>
-                            <div class="node-stats">
-                                <span class="stat-badge">2% dos alertas</span>
-                            </div>
+                        <div class="node" data-id="1.3.3" data-parent="1.3">
+                            <div class="node-title">Zombie</div>
+                            <div class="result-badge">2% dos alertas</div>
                         </div>
-
-                        <div class="node">
-                            <div class="node-header">
-                                <div class="node-icon">🛡️</div>
-                                <div class="node-title">Prevenção</div>
-                            </div>
-                            <div class="node-stats">
-                                <span class="stat-badge">13% dos alertas</span>
-                            </div>
+                        <div class="node" data-id="1.3.4" data-parent="1.3">
+                            <div class="node-title">Prevenção</div>
+                            <div class="result-badge">13% dos alertas</div>
                         </div>
-
-                        <div class="node">
-                            <div class="node-header">
-                                <div class="node-icon">🆘</div>
-                                <div class="node-title">CX Emergência</div>
-                            </div>
-                            <div class="node-stats">
-                                <span class="stat-badge">8% dos alertas</span>
-                            </div>
+                        <div class="node" data-id="1.3.5" data-parent="1.3">
+                            <div class="node-title">CX Emergência</div>
+                            <div class="result-badge">8% dos alertas</div>
                         </div>
-
-                        <div class="node">
-                            <div class="node-header">
-                                <div class="node-icon">🗺️</div>
-                                <div class="node-title">Fronteira</div>
-                            </div>
-                            <div class="node-stats">
-                                <span class="stat-badge">1% dos alertas</span>
-                            </div>
+                        <div class="node" data-id="1.3.6" data-parent="1.3">
+                            <div class="node-title">Fronteira</div>
+                            <div class="result-badge">1% dos alertas</div>
                         </div>
                     </div>
 
-                    <div class="node-column">
-                        <div class="node success">
-                            <div class="node-header">
-                                <div class="node-icon">✅</div>
-                                <div class="node-title">Positivo</div>
-                            </div>
-                            <div class="node-stats">
-                                <span class="stat-badge success">59% dos alertas</span>
-                                <span class="stat-badge success">Efetividade OK</span>
-                            </div>
+                    <div class="node-column level-3">
+                        <div class="node" data-id="1.3.1.1" data-parent="1.3.1">
+                            <div class="node-title">Positivo</div>
+                            <div class="result-badge">59% dos alertas</div>
                         </div>
-
-                        <div class="node danger">
-                            <div class="node-header">
-                                <div class="node-icon">❌</div>
-                                <div class="node-title">Falso Positivo</div>
-                            </div>
-                            <div class="node-stats">
-                                <span class="stat-badge danger">41% dos alertas</span>
-                                <span class="stat-badge danger">Alto custo</span>
-                            </div>
+                        <div class="node" data-id="1.3.1.2" data-parent="1.3.1">
+                            <div class="node-title">Falso Positivo</div>
+                            <div class="result-badge">41% dos alertas</div>
+                        </div>
+                        <div style="height: 15px;"></div>
+                        <div class="node" data-id="1.3.2.1" data-parent="1.3.2">
+                            <div class="node-title">Positivo</div>
+                            <div class="result-badge">59% dos alertas</div>
+                        </div>
+                        <div class="node" data-id="1.3.2.2" data-parent="1.3.2">
+                            <div class="node-title">Falso Positivo</div>
+                            <div class="result-badge">41% dos alertas</div>
                         </div>
                     </div>
                 </div>
 
                 <div class="notes-container">
-                    <div class="notes-header">
-                        <div class="notes-icon">📌</div>
-                        <div class="notes-title">Insights & Observações</div>
-                    </div>
+                    <div class="notes-title">📌 Observações</div>
                     <ul class="notes-list">
-                        <li>Distribuição regional concentrada: SP 73%, POA 13%, demais cidades < 5%</li>
-                        <li>Alta taxa de falsos positivos (41%) gerando custos desnecessários</li>
-                        <li>Problemas de instalação em novas cidades causando desconexões</li>
-                        <li>Necessária rotina de redução de falsos positivos com equipe Tech</li>
-                        <li>Aumento de ataques correlacionado com perdas consumadas/evitadas</li>
-                        <li>Oportunidade: ML para predição e redução de falsos positivos</li>
+                        <li>Distribuição por Regional (ago): SP 73%, POA 13%, FOR 3%, BSB 3%, CAMP 2%, STS 2%, REC 1%, BH 1%, FLN 1%, CWB 1%, GYN 1%.</li>
+                        <li>Pontos de atenção: desconexões por má instalação (novas cidades); rotina de redução de falsos positivos com Tech; aumento de ataques correlacionado às perdas consumadas/evitadas.</li>
                     </ul>
                 </div>
             </div>
@@ -918,159 +498,78 @@
         <div class="flowchart-section">
             <div class="section-wrapper">
                 <div class="flowchart-container">
-                    <svg class="connection-svg">
-                        <path class="connection-line active" d="M 320 150 L 400 150" />
-                        <path class="connection-line" d="M 720 150 L 800 150" />
-                    </svg>
-
-                    <div class="node-column">
-                        <div class="node root">
-                            <div class="node-header">
-                                <div class="node-icon">⚖️</div>
-                                <div class="node-title">Seized — Frota apreendida</div>
-                            </div>
-                            <div class="node-subtitle">Meta: Manter < 21 | Atual: 39 em andamento</div>
-                            <div class="result-highlight">Alto risco: casos judiciais +59% YTD</div>
+                    <svg class="connections" width="100%" height="100%"></svg>
+                    
+                    <div class="node-column level-1">
+                        <div class="node root" data-id="1.4">
+                            <div class="node-title">Seized — Frota apreendida</div>
+                            <div class="node-subtitle">Manter < 21 | Média 39 em andamento</div>
                         </div>
                     </div>
 
-                    <div class="node-column">
-                        <div class="node danger">
-                            <div class="node-header">
-                                <div class="node-icon">🚦</div>
-                                <div class="node-title">Infrações de trânsito</div>
-                            </div>
-                            <div class="node-stats">
-                                <span class="stat-badge danger">30.3% das apreensões</span>
-                            </div>
+                    <div class="node-column level-2">
+                        <div class="node" data-id="1.4.1" data-parent="1.4">
+                            <div class="node-title">Infrações de trânsito</div>
+                            <div class="result-badge">30,3% das apreensões</div>
                         </div>
-
-                        <div class="node warning">
-                            <div class="node-header">
-                                <div class="node-icon">🔍</div>
-                                <div class="node-title">Recuperação roubo/furto</div>
-                            </div>
-                            <div class="node-stats">
-                                <span class="stat-badge warning">23.2% das apreensões</span>
-                            </div>
+                        <div class="node" data-id="1.4.2" data-parent="1.4">
+                            <div class="node-title">Recuperação roubo/furto</div>
+                            <div class="result-badge">23,2% das apreensões</div>
                         </div>
-
-                        <div class="node danger">
-                            <div class="node-header">
-                                <div class="node-icon">⚠️</div>
-                                <div class="node-title">Ocorrências criminais</div>
-                            </div>
-                            <div class="node-stats">
-                                <span class="stat-badge danger">21.4% das apreensões</span>
-                            </div>
+                        <div class="node" data-id="1.4.3" data-parent="1.4">
+                            <div class="node-title">Acidente de trânsito</div>
+                            <div class="result-badge">8,3% das apreensões</div>
                         </div>
-
-                        <div class="node">
-                            <div class="node-header">
-                                <div class="node-icon">💥</div>
-                                <div class="node-title">Acidente de trânsito</div>
-                            </div>
-                            <div class="node-stats">
-                                <span class="stat-badge">8.3% das apreensões</span>
-                            </div>
+                        <div class="node" data-id="1.4.4" data-parent="1.4">
+                            <div class="node-title">Restrição de circulação</div>
+                            <div class="result-badge">6,5% das apreensões</div>
                         </div>
-
-                        <div class="node">
-                            <div class="node-header">
-                                <div class="node-icon">🚫</div>
-                                <div class="node-title">Restrição de circulação</div>
-                            </div>
-                            <div class="node-stats">
-                                <span class="stat-badge">6.5% das apreensões</span>
-                            </div>
+                        <div class="node" data-id="1.4.5" data-parent="1.4">
+                            <div class="node-title">Ocorrências criminais</div>
+                            <div class="result-badge">21,4% das apreensões</div>
                         </div>
-
-                        <div class="node">
-                            <div class="node-header">
-                                <div class="node-icon">📋</div>
-                                <div class="node-title">Outros motivos</div>
-                            </div>
-                            <div class="node-stats">
-                                <span class="stat-badge">9.6% das apreensões</span>
-                            </div>
+                        <div class="node" data-id="1.4.6" data-parent="1.4">
+                            <div class="node-title">Outros motivos</div>
+                            <div class="result-badge">9,6% das apreensões</div>
                         </div>
                     </div>
 
-                    <div class="node-column">
-                        <div class="node warning">
-                            <div class="node-header">
-                                <div class="node-icon">🚗</div>
-                                <div class="node-title">Conduzir sem CNH</div>
-                            </div>
-                            <div class="node-stats">
-                                <span class="stat-badge warning">12.6% das multas</span>
-                            </div>
+                    <div class="node-column level-3">
+                        <div class="node" data-id="1.4.1.1" data-parent="1.4.1">
+                            <div class="node-title">Conduzir sem CNH</div>
+                            <div class="result-badge">12,6% das multas</div>
                         </div>
-
-                        <div class="node danger">
-                            <div class="node-header">
-                                <div class="node-icon">🅿️</div>
-                                <div class="node-title">Estacionamento irregular</div>
-                            </div>
-                            <div class="node-stats">
-                                <span class="stat-badge danger">32.8% das multas</span>
-                            </div>
+                        <div class="node" data-id="1.4.1.2" data-parent="1.4.1">
+                            <div class="node-title">Estacionamento irregular</div>
+                            <div class="result-badge">32,8% das multas</div>
                         </div>
-
-                        <div class="node warning">
-                            <div class="node-header">
-                                <div class="node-icon">🛞</div>
-                                <div class="node-title">Pneu careca</div>
-                            </div>
-                            <div class="node-stats">
-                                <span class="stat-badge warning">13.4% das multas</span>
-                            </div>
+                        <div class="node" data-id="1.4.1.3" data-parent="1.4.1">
+                            <div class="node-title">Pneu careca</div>
+                            <div class="result-badge">13,4% das multas</div>
                         </div>
-
-                        <div class="node danger">
-                            <div class="node-header">
-                                <div class="node-icon">🍺</div>
-                                <div class="node-title">Recusa bafômetro</div>
-                            </div>
-                            <div class="node-stats">
-                                <span class="stat-badge danger">11.8% das multas</span>
-                            </div>
+                        <div class="node" data-id="1.4.1.4" data-parent="1.4.1">
+                            <div class="node-title">Recusa bafômetro</div>
+                            <div class="result-badge">11,8% das multas</div>
                         </div>
-
-                        <div class="node danger">
-                            <div class="node-header">
-                                <div class="node-icon">💊</div>
-                                <div class="node-title">Tráfico</div>
-                            </div>
-                            <div class="node-stats">
-                                <span class="stat-badge danger">39.7% das ocorrências</span>
-                            </div>
+                        <div style="height: 100px;"></div>
+                        <div class="node" data-id="1.4.5.1" data-parent="1.4.5">
+                            <div class="node-title">Tráfico</div>
+                            <div class="result-badge">39,7% das multas</div>
                         </div>
-
-                        <div class="node danger">
-                            <div class="node-header">
-                                <div class="node-icon">🔫</div>
-                                <div class="node-title">Assalto</div>
-                            </div>
-                            <div class="node-stats">
-                                <span class="stat-badge danger">27.2% das ocorrências</span>
-                            </div>
+                        <div class="node" data-id="1.4.5.2" data-parent="1.4.5">
+                            <div class="node-title">Assalto</div>
+                            <div class="result-badge">27,2% das multas</div>
                         </div>
                     </div>
                 </div>
 
                 <div class="notes-container">
-                    <div class="notes-header">
-                        <div class="notes-icon">📌</div>
-                        <div class="notes-title">Insights & Observações</div>
-                    </div>
+                    <div class="notes-title">📌 Observações</div>
                     <ul class="notes-list">
-                        <li>Casos judiciais aumentaram 59% (de 17 para 27 YTD)</li>
-                        <li>Gap crítico de prazo: administrativos 3-15 dias vs judiciais 100-300 dias</li>
-                        <li>Alta preocupante em apreensões por ocorrências criminais</li>
-                        <li>Ações em andamento: procuração ECAR (piloto LM), visitas a Delegacias</li>
-                        <li>Foco necessário em casos >200 dias com risco de leilão</li>
-                        <li>Monitoramento via DDL e relacionamento com escrivães essencial</li>
+                        <li>Observações: casos judiciais subiram de 17 para 27 (YTD).</li>
+                        <li>Gap de prazo: adm 3–15 dias vs judiciais 100–300 dias.</li>
+                        <li>Alta em apreensões por ocorrências criminais.</li>
+                        <li>Ações: procuração ECAR (piloto LM); visitas a Delegacias; verificação de veículos em perícia; relacionamento com escrivães; monitoramento via DDL; foco >200 dias; alertas de risco de leilão.</li>
                     </ul>
                 </div>
             </div>
@@ -1080,105 +579,70 @@
         <div class="flowchart-section">
             <div class="section-wrapper">
                 <div class="flowchart-container">
-                    <svg class="connection-svg">
-                        <path class="connection-line active" d="M 320 150 L 400 150" />
-                        <path class="connection-line" d="M 720 150 L 800 150" />
-                    </svg>
-
-                    <div class="node-column">
-                        <div class="node root">
-                            <div class="node-header">
-                                <div class="node-icon">💥</div>
-                                <div class="node-title">Sinistros de Perda Total</div>
-                            </div>
-                            <div class="result-highlight">234 carros | Custo R$ 1.6M (2025)</div>
+                    <svg class="connections" width="100%" height="100%"></svg>
+                    
+                    <div class="node-column level-1">
+                        <div class="node root" data-id="1.5">
+                            <div class="node-title">Sinistros de Perda Total</div>
+                            <div class="result-badge">234 carros</div>
                         </div>
                     </div>
 
-                    <div class="node-column">
-                        <div class="node danger">
-                            <div class="node-header">
-                                <div class="node-icon">📍</div>
-                                <div class="node-title">São Paulo</div>
-                            </div>
-                            <div class="node-stats">
-                                <span class="stat-badge danger">213 carros</span>
-                                <span class="stat-badge">176 avaliados</span>
-                                <span class="stat-badge danger">91% do total</span>
-                            </div>
+                    <div class="node-column level-2">
+                        <div class="node" data-id="1.5.1" data-parent="1.5">
+                            <div class="node-title">São Paulo</div>
+                            <div class="result-badge">213 carros | 176 avaliados</div>
                         </div>
-
-                        <div class="node warning">
-                            <div class="node-header">
-                                <div class="node-icon">📍</div>
-                                <div class="node-title">Porto Alegre</div>
-                            </div>
-                            <div class="node-stats">
-                                <span class="stat-badge warning">20 carros</span>
-                                <span class="stat-badge">8.5% do total</span>
-                            </div>
+                        <div class="node" data-id="1.5.2" data-parent="1.5">
+                            <div class="node-title">Porto Alegre</div>
+                            <div class="result-badge">20 carros</div>
                         </div>
-
-                        <div class="node">
-                            <div class="node-header">
-                                <div class="node-icon">📍</div>
-                                <div class="node-title">Outras cidades</div>
-                            </div>
-                            <div class="node-stats">
-                                <span class="stat-badge">1 carro</span>
-                                <span class="stat-badge">0.5% do total</span>
-                            </div>
+                        <div class="node" data-id="1.5.3" data-parent="1.5">
+                            <div class="node-title">Outras cidades</div>
+                            <div class="result-badge">1 carro</div>
                         </div>
                     </div>
 
-                    <div class="node-column">
-                        <div class="node">
-                            <div class="node-header">
-                                <div class="node-icon">💰</div>
-                                <div class="node-title">Venda no estado</div>
-                            </div>
-                            <div class="node-stats">
-                                <span class="stat-badge">123 carros total</span>
-                                <span class="stat-badge success">Recuperação parcial</span>
-                            </div>
+                    <div class="node-column level-3">
+                        <div class="node" data-id="1.5.1.1" data-parent="1.5.1">
+                            <div class="node-title">Venda no estado</div>
+                            <div class="result-badge">117 carros</div>
                         </div>
-
-                        <div class="node danger">
-                            <div class="node-header">
-                                <div class="node-icon">❌</div>
-                                <div class="node-title">Perda Total (PT)</div>
-                            </div>
-                            <div class="node-stats">
-                                <span class="stat-badge danger">5 carros</span>
-                                <span class="stat-badge danger">Perda completa</span>
-                            </div>
+                        <div class="node" data-id="1.5.1.2" data-parent="1.5.1">
+                            <div class="node-title">PT</div>
+                            <div class="result-badge">1 carro</div>
                         </div>
-
-                        <div class="node warning">
-                            <div class="node-header">
-                                <div class="node-icon">🔧</div>
-                                <div class="node-title">Manutenção</div>
-                            </div>
-                            <div class="node-stats">
-                                <span class="stat-badge warning">69 carros total</span>
-                                <span class="stat-badge warning">Alto custo</span>
-                            </div>
+                        <div class="node" data-id="1.5.1.3" data-parent="1.5.1">
+                            <div class="node-title">Manutenção</div>
+                            <div class="result-badge">58 carros</div>
+                        </div>
+                        <div style="height: 15px;"></div>
+                        <div class="node" data-id="1.5.2.1" data-parent="1.5.2">
+                            <div class="node-title">Venda no estado</div>
+                            <div class="result-badge">6 carros</div>
+                        </div>
+                        <div class="node" data-id="1.5.2.2" data-parent="1.5.2">
+                            <div class="node-title">PT</div>
+                            <div class="result-badge">4 carros</div>
+                        </div>
+                        <div class="node" data-id="1.5.2.3" data-parent="1.5.2">
+                            <div class="node-title">Manutenção</div>
+                            <div class="result-badge">10 carros</div>
+                        </div>
+                        <div style="height: 15px;"></div>
+                        <div class="node" data-id="1.5.3.1" data-parent="1.5.3">
+                            <div class="node-title">Manutenção</div>
+                            <div class="result-badge">1 carro</div>
                         </div>
                     </div>
                 </div>
 
                 <div class="notes-container">
-                    <div class="notes-header">
-                        <div class="notes-icon">📌</div>
-                        <div class="notes-title">Insights & Observações</div>
-                    </div>
+                    <div class="notes-title">📌 Observações</div>
                     <ul class="notes-list">
-                        <li>Explosão de custos: R$500k/ano (2023) → R$1.6M (até ago/2025)</li>
-                        <li>Risco crítico: retroalimentação de desmanches no mercado</li>
-                        <li>Pagamentos sendo feitos sem orçamentos ou garantias adequadas</li>
-                        <li>Falta documentação essencial: BO, CNH, CRLV, croqui, fotos</li>
-                        <li>Risco reputacional: transição CNPJ→CPF mal gerenciada</li>
-                        <li>Urgente: Política de Sinistros (60 dias), rede credenciada, aprovação L3+</li>
+                        <li>Padrão crítico: custos de ~R$500k/ano (2023) → R$1,6M (até ago/2025).</li>
+                        <li>Risco: retroalimentação de desmanches; pagamentos sem orçamentos/garantia; falta de documentação (BO, CNH, CRLV, croqui, fotos); risco reputacional CNPJ→CPF.</li>
+                        <li>Recomendações: Política de Sinistros (60 dias), rede de oficinas credenciadas, BO obrigatório, aprovação L3+ com auditoria prévia.</li>
                     </ul>
                 </div>
             </div>
@@ -1186,56 +650,76 @@
     </div>
 
     <script>
-        // Animações interativas
-        document.addEventListener('DOMContentLoaded', () => {
-            // Remove loading overlay após carregamento
-            setTimeout(() => {
-                document.querySelector('.loading-overlay').style.display = 'none';
-            }, 1500);
-
-            // Animação de hover nas conexões
-            const nodes = document.querySelectorAll('.node');
-            nodes.forEach(node => {
-                node.addEventListener('mouseenter', () => {
-                    const parentSection = node.closest('.flowchart-section');
-                    const lines = parentSection.querySelectorAll('.connection-line');
-                    lines.forEach(line => {
-                        line.style.stroke = '#667eea';
-                        line.style.strokeWidth = '4';
-                    });
-                });
-
-                node.addEventListener('mouseleave', () => {
-                    const parentSection = node.closest('.flowchart-section');
-                    const lines = parentSection.querySelectorAll('.connection-line:not(.active)');
-                    lines.forEach(line => {
-                        line.style.stroke = '#e0e6ed';
-                        line.style.strokeWidth = '3';
-                    });
-                });
-            });
-
-            // Animação de scroll suave
-            const observerOptions = {
-                threshold: 0.1,
-                rootMargin: '0px 0px -100px 0px'
-            };
-
-            const observer = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        entry.target.style.opacity = '1';
-                        entry.target.style.transform = 'translateY(0)';
+        // Função para desenhar conexões
+        function drawConnections() {
+            const sections = document.querySelectorAll('.flowchart-section');
+            
+            sections.forEach(section => {
+                const svg = section.querySelector('svg.connections');
+                const nodes = section.querySelectorAll('.node');
+                const paths = [];
+                
+                // Limpar SVG
+                svg.innerHTML = '';
+                
+                // Calcular dimensões do container
+                const container = section.querySelector('.flowchart-container');
+                const rect = container.getBoundingClientRect();
+                svg.setAttribute('width', rect.width);
+                svg.setAttribute('height', rect.height);
+                
+                nodes.forEach(node => {
+                    const parentId = node.getAttribute('data-parent');
+                    if (parentId) {
+                        const parent = section.querySelector(`[data-id="${parentId}"]`);
+                        if (parent) {
+                            const parentRect = parent.getBoundingClientRect();
+                            const nodeRect = node.getBoundingClientRect();
+                            const containerRect = container.getBoundingClientRect();
+                            
+                            // Calcular posições relativas ao container
+                            const startX = parentRect.right - containerRect.left;
+                            const startY = parentRect.top - containerRect.top + parentRect.height / 2;
+                            const endX = nodeRect.left - containerRect.left;
+                            const endY = nodeRect.top - containerRect.top + nodeRect.height / 2;
+                            
+                            // Criar linha de conexão
+                            const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                            const midX = (startX + endX) / 2;
+                            
+                            // Criar caminho curvo
+                            const d = `M ${startX} ${startY} C ${midX} ${startY}, ${midX} ${endY}, ${endX} ${endY}`;
+                            path.setAttribute('d', d);
+                            path.setAttribute('class', 'connection-line');
+                            
+                            // Adicionar classe active para conexões principais
+                            if (parent.classList.contains('root')) {
+                                path.classList.add('active');
+                            }
+                            
+                            svg.appendChild(path);
+                        }
                     }
                 });
-            }, observerOptions);
+            });
+        }
 
-            const sections = document.querySelectorAll('.flowchart-section');
-            sections.forEach(section => {
-                section.style.opacity = '0';
-                section.style.transform = 'translateY(20px)';
-                section.style.transition = 'all 0.6s ease';
-                observer.observe(section);
+        // Desenhar conexões quando a página carregar
+        window.addEventListener('load', drawConnections);
+        window.addEventListener('resize', drawConnections);
+        
+        // Redrawing on scroll para ajustar posições
+        let scrollTimeout;
+        window.addEventListener('scroll', () => {
+            clearTimeout(scrollTimeout);
+            scrollTimeout = setTimeout(drawConnections, 100);
+        });
+
+        // Adicionar interatividade aos nós
+        document.querySelectorAll('.node').forEach(node => {
+            node.addEventListener('click', function() {
+                // Toggle selection
+                this.classList.toggle('selected');
             });
         });
     </script>
