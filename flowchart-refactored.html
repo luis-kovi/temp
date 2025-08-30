@@ -1,0 +1,1089 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestão de Ativos — Loss Prevention</title>
+    <style>
+        /* Design System Variables */
+        :root {
+            /* Colors */
+            --primary: #1a1a1a;
+            --primary-light: #2d2d2d;
+            --secondary: #ffffff;
+            --accent: #e74c3c;
+            --accent-hover: #c0392b;
+            --text-primary: #1a1a1a;
+            --text-secondary: #666666;
+            --text-muted: #999999;
+            --bg-primary: #f8f9fa;
+            --bg-secondary: #ffffff;
+            --border: #e0e0e0;
+            --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
+            --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+            --shadow-lg: 0 8px 24px rgba(0,0,0,0.12);
+            
+            /* Spacing */
+            --space-xs: 0.5rem;
+            --space-sm: 0.75rem;
+            --space-md: 1rem;
+            --space-lg: 1.5rem;
+            --space-xl: 2rem;
+            --space-2xl: 3rem;
+            
+            /* Typography */
+            --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+            --font-size-xs: 0.75rem;
+            --font-size-sm: 0.875rem;
+            --font-size-base: 1rem;
+            --font-size-lg: 1.125rem;
+            --font-size-xl: 1.25rem;
+            --font-size-2xl: 1.5rem;
+            
+            /* Transitions */
+            --transition-fast: 150ms ease;
+            --transition-base: 250ms ease;
+            --transition-slow: 350ms ease;
+        }
+
+        /* Reset */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            font-size: 16px;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        body {
+            font-family: var(--font-sans);
+            font-size: var(--font-size-base);
+            line-height: 1.6;
+            color: var(--text-primary);
+            background-color: var(--bg-primary);
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 64px;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 var(--space-xl);
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.95);
+        }
+
+        .header__title {
+            font-size: var(--font-size-xl);
+            font-weight: 600;
+            color: var(--text-primary);
+            letter-spacing: -0.02em;
+        }
+
+        .header__controls {
+            display: flex;
+            gap: var(--space-sm);
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-xs);
+            padding: var(--space-xs) var(--space-md);
+            font-size: var(--font-size-sm);
+            font-weight: 500;
+            color: var(--text-secondary);
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            white-space: nowrap;
+        }
+
+        .btn:hover {
+            color: var(--text-primary);
+            border-color: var(--text-secondary);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+            box-shadow: none;
+        }
+
+        .btn__icon {
+            width: 16px;
+            height: 16px;
+            opacity: 0.8;
+        }
+
+        /* Canvas Container */
+        .canvas {
+            position: fixed;
+            top: 64px;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--bg-primary);
+            overflow: hidden;
+        }
+
+        .canvas__viewport {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            cursor: grab;
+        }
+
+        .canvas__viewport.is-dragging {
+            cursor: grabbing;
+        }
+
+        .canvas__content {
+            position: absolute;
+            transform-origin: 0 0;
+            will-change: transform;
+        }
+
+        /* SVG Layer */
+        .connections {
+            position: absolute;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .connection {
+            fill: none;
+            stroke: #d0d0d0;
+            stroke-width: 2;
+            opacity: 0.8;
+        }
+
+        .connection-arrow {
+            fill: #d0d0d0;
+        }
+
+        /* Nodes */
+        .node {
+            position: absolute;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: var(--space-md) var(--space-lg);
+            box-shadow: var(--shadow-sm);
+            transition: all var(--transition-base);
+            cursor: pointer;
+            min-width: 220px;
+            max-width: 280px;
+            z-index: 10;
+        }
+
+        .node:hover {
+            box-shadow: var(--shadow-md);
+            transform: translateY(-2px);
+            border-color: var(--primary-light);
+        }
+
+        .node.is-root {
+            background: var(--primary);
+            color: var(--secondary);
+            border-color: var(--primary);
+            font-weight: 600;
+            box-shadow: var(--shadow-md);
+        }
+
+        .node.is-root:hover {
+            background: var(--primary-light);
+            border-color: var(--primary-light);
+        }
+
+        .node__header {
+            display: flex;
+            align-items: center;
+            gap: var(--space-xs);
+        }
+
+        .node__chevron {
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: -4px;
+            margin-right: 4px;
+            opacity: 0.6;
+            transition: transform var(--transition-fast);
+            flex-shrink: 0;
+        }
+
+        .node__chevron svg {
+            width: 12px;
+            height: 12px;
+        }
+
+        .node.is-collapsed .node__chevron {
+            transform: rotate(-90deg);
+        }
+
+        .node__title {
+            font-size: var(--font-size-base);
+            font-weight: 500;
+            line-height: 1.4;
+            color: inherit;
+        }
+
+        .node__subtitle {
+            font-size: var(--font-size-sm);
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        .node.is-root .node__subtitle {
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        /* Result Badge */
+        .node__badge {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            background: var(--accent);
+            color: var(--secondary);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: var(--font-size-xs);
+            font-weight: 600;
+            box-shadow: var(--shadow-sm);
+            white-space: nowrap;
+            z-index: 20;
+        }
+
+        /* Notes */
+        .note {
+            position: absolute;
+            background: #fffbf0;
+            border: 1px solid #f0e6d2;
+            border-radius: 8px;
+            padding: var(--space-md);
+            box-shadow: var(--shadow-sm);
+            max-width: 320px;
+            z-index: 5;
+        }
+
+        .note__header {
+            display: flex;
+            align-items: center;
+            gap: var(--space-xs);
+            font-weight: 600;
+            color: #8b6914;
+            margin-bottom: var(--space-sm);
+            font-size: var(--font-size-sm);
+        }
+
+        .note__list {
+            list-style: none;
+            font-size: var(--font-size-sm);
+            line-height: 1.6;
+        }
+
+        .note__item {
+            position: relative;
+            padding-left: var(--space-md);
+            margin-bottom: var(--space-xs);
+            color: #6b5d14;
+        }
+
+        .note__item::before {
+            content: '•';
+            position: absolute;
+            left: 0;
+            color: #daa520;
+            font-weight: bold;
+        }
+
+        /* Zoom Indicator */
+        .zoom-indicator {
+            position: fixed;
+            bottom: var(--space-lg);
+            right: var(--space-lg);
+            background: rgba(26, 26, 26, 0.9);
+            color: var(--secondary);
+            padding: var(--space-xs) var(--space-md);
+            border-radius: 6px;
+            font-size: var(--font-size-sm);
+            opacity: 0;
+            transition: opacity var(--transition-fast);
+            pointer-events: none;
+        }
+
+        .zoom-indicator.is-visible {
+            opacity: 1;
+        }
+
+        /* Loading State */
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            color: var(--text-muted);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header {
+                padding: 0 var(--space-md);
+            }
+
+            .header__title {
+                font-size: var(--font-size-lg);
+            }
+
+            .btn {
+                padding: var(--space-xs) var(--space-sm);
+            }
+
+            .btn__text {
+                display: none;
+            }
+
+            .node {
+                min-width: 180px;
+                max-width: 220px;
+                padding: var(--space-sm) var(--space-md);
+            }
+        }
+
+        /* Print Styles */
+        @media print {
+            .header__controls {
+                display: none;
+            }
+
+            .canvas {
+                top: 0;
+                position: relative;
+            }
+
+            .node:hover {
+                transform: none;
+                box-shadow: var(--shadow-sm);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <h1 class="header__title">Gestão de Ativos — Loss Prevention</h1>
+        <div class="header__controls">
+            <button class="btn" id="expandAll" title="Expandir todos">
+                <svg class="btn__icon" viewBox="0 0 16 16" fill="currentColor">
+                    <path d="M3 3h10v10H3V3zm1.5 1.5v7h7v-7h-7z"/>
+                    <path d="M8 6v4M6 8h4" stroke="currentColor" stroke-width="1.5" fill="none"/>
+                </svg>
+                <span class="btn__text">Expandir</span>
+            </button>
+            <button class="btn" id="collapseAll" title="Recolher todos">
+                <svg class="btn__icon" viewBox="0 0 16 16" fill="currentColor">
+                    <path d="M3 3h10v10H3V3zm1.5 1.5v7h7v-7h-7z"/>
+                    <path d="M6 8h4" stroke="currentColor" stroke-width="1.5" fill="none"/>
+                </svg>
+                <span class="btn__text">Recolher</span>
+            </button>
+            <button class="btn" id="resetView" title="Resetar visualização">
+                <svg class="btn__icon" viewBox="0 0 16 16" fill="currentColor">
+                    <circle cx="7" cy="7" r="4" fill="none" stroke="currentColor" stroke-width="1.5"/>
+                    <path d="M10 10l3 3" stroke="currentColor" stroke-width="1.5"/>
+                </svg>
+                <span class="btn__text">Resetar</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Canvas -->
+    <div class="canvas">
+        <div class="canvas__viewport" id="viewport">
+            <div class="canvas__content" id="content">
+                <svg class="connections" id="connections"></svg>
+                <div class="loading">Carregando fluxograma...</div>
+            </div>
+        </div>
+        <div class="zoom-indicator" id="zoomIndicator"></div>
+    </div>
+
+    <script>
+        // Data structure
+        const flowchartData = {
+            "id": "1",
+            "title": "Gestão de ativos — Loss Prevention",
+            "children": [
+                {
+                    "id": "1.1",
+                    "title": "Perder no máximo 10 carros/mês",
+                    "subtitle": "Meta UE R$ 64",
+                    "resultBadge": "Resultado R$ 6.7M / UE R$ 50",
+                    "children": [
+                        {
+                            "id": "1.1.1",
+                            "title": "Não recuperados",
+                            "subtitle": "89 casos",
+                            "resultBadge": "Resultado R$ 6.7M",
+                            "children": [
+                                { "id": "1.1.1.1", "title": "Perdas por roubo", "subtitle": "39 casos", "resultBadge": "Resultado R$ 3.0M" },
+                                {
+                                    "id": "1.1.1.2",
+                                    "title": "Perdas por estelionato",
+                                    "subtitle": "50 casos",
+                                    "resultBadge": "Resultado R$ 3.7M",
+                                    "children": [
+                                        { "id": "1.1.1.2.1", "title": "Falsa comunicação de crime", "subtitle": "27 casos", "resultBadge": "Resultado R$ 1.9M" },
+                                        { "id": "1.1.1.2.2", "title": "Apropriação indébita", "subtitle": "11 casos", "resultBadge": "Resultado R$ 823k" },
+                                        { "id": "1.1.1.2.3", "title": "Uso de laranjas", "subtitle": "9 casos", "resultBadge": "Resultado R$ 706k" },
+                                        { "id": "1.1.1.2.4", "title": "Fraude cadastral", "subtitle": "3 casos", "resultBadge": "Resultado R$ 246k" }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "id": "1.1.2",
+                            "title": "Recuperados",
+                            "subtitle": "38 casos",
+                            "resultBadge": "Resultado +R$ 2.7M",
+                            "children": [
+                                { "id": "1.1.2.1", "title": "Roubos", "subtitle": "2 casos", "resultBadge": "Resultado +R$ 145k" },
+                                { "id": "1.1.2.2", "title": "Estelionato", "subtitle": "36 casos", "resultBadge": "Resultado +R$ 2.5M" }
+                            ]
+                        }
+                    ],
+                    "notes": [
+                        "Padrão mais crítico: combinação de inadimplência alta, problemas documentais, pagamentos por terceiros com restrição (BGC) e relatos inconsistentes com rastreador.",
+                        "Modus operandi: dívidas acumuladas, incidente em local conhecido, comunicação tardia, veículo não recuperado.",
+                        "Oportunidades operacionais: contato com cliente, início ágil de tratativas de desconexões/alertas, acionamento rápido de Pronta Resposta.",
+                        "Oportunidades sistêmicas: integrar Safety Admin + Pipefy; ingerir dados Pix para detecção de vínculos de risco."
+                    ]
+                },
+                {
+                    "id": "1.2",
+                    "title": "Gastos com guincho por recolha R$ 10",
+                    "resultBadge": "Resultado R$ 3.8M / UE R$ 32",
+                    "children": [
+                        {
+                            "id": "1.2.1",
+                            "title": "Chofer",
+                            "resultBadge": "Resultado R$ 2.2M",
+                            "children": [
+                                { "id": "1.2.1.1", "title": "Recolha Inadimplência", "resultBadge": "Resultado R$ 2.2M" }
+                            ]
+                        },
+                        {
+                            "id": "1.2.2",
+                            "title": "Guincho",
+                            "resultBadge": "Resultado R$ 1.2M",
+                            "children": [
+                                { "id": "1.2.2.1", "title": "Recolha Inadimplência", "resultBadge": "Resultado R$ 370k" },
+                                { "id": "1.2.2.2", "title": "Safety", "resultBadge": "Resultado R$ 830k" }
+                            ]
+                        },
+                        {
+                            "id": "1.2.3",
+                            "title": "Cegonha",
+                            "resultBadge": "Resultado R$ 414k",
+                            "children": [
+                                { "id": "1.2.3.1", "title": "Recolha Inadimplência", "resultBadge": "Resultado R$ 102k" },
+                                { "id": "1.2.3.2", "title": "Safety", "resultBadge": "Resultado R$ 312k" }
+                            ]
+                        }
+                    ],
+                    "notes": [
+                        "Padrão crítico: baixa devolução voluntária.",
+                        "Aumento de abandono em via pública (recorde Ago/2025: 88; média 2025: 64/mês).",
+                        "Impacto em custos de segunda via de chaves e tendência de alta em cegonha por expansão."
+                    ]
+                },
+                {
+                    "id": "1.3",
+                    "title": "Gastos com Pronta Resposta",
+                    "subtitle": "UE R$ 30",
+                    "resultBadge": "Resultado R$ 2.6M / UE R$ 42",
+                    "children": [
+                        {
+                            "id": "1.3.1",
+                            "title": "Desconexão",
+                            "resultBadge": "46% dos alertas",
+                            "children": [
+                                { "id": "1.3.1.1", "title": "Positivo", "resultBadge": "59% dos alertas" },
+                                { "id": "1.3.1.2", "title": "Falso Positivo", "resultBadge": "41% dos alertas" }
+                            ]
+                        },
+                        {
+                            "id": "1.3.2",
+                            "title": "Sem sinal",
+                            "resultBadge": "30% dos alertas",
+                            "children": [
+                                { "id": "1.3.2.1", "title": "Positivo", "resultBadge": "59% dos alertas" },
+                                { "id": "1.3.2.2", "title": "Falso Positivo", "resultBadge": "41% dos alertas" }
+                            ]
+                        },
+                        { "id": "1.3.3", "title": "Zombie", "resultBadge": "2% dos alertas" },
+                        { "id": "1.3.4", "title": "Prevenção", "resultBadge": "13% dos alertas" },
+                        { "id": "1.3.5", "title": "CX Emergência", "resultBadge": "8% dos alertas" },
+                        { "id": "1.3.6", "title": "Fronteira", "resultBadge": "1% dos alertas" }
+                    ],
+                    "notes": [
+                        "Distribuição por Regional (ago): SP 73%, POA 13%, FOR 3%, BSB 3%, CAMP 2%, STS 2%, REC 1%, BH 1%, FLN 1%, CWB 1%, GYN 1%.",
+                        "Pontos de atenção: desconexões por má instalação (novas cidades); rotina de redução de falsos positivos com Tech; aumento de ataques correlacionado às perdas consumadas/evitadas."
+                    ]
+                },
+                {
+                    "id": "1.4",
+                    "title": "Seized — Frota apreendida",
+                    "subtitle": "Manter < 21 | Média 39 em andamento",
+                    "children": [
+                        {
+                            "id": "1.4.1",
+                            "title": "Infrações de trânsito",
+                            "resultBadge": "30,3% das apreensões",
+                            "children": [
+                                { "id": "1.4.1.1", "title": "Conduzir sem CNH", "resultBadge": "12,6% das multas" },
+                                { "id": "1.4.1.2", "title": "Estacionamento irregular", "resultBadge": "32,8% das multas" },
+                                { "id": "1.4.1.3", "title": "Pneu careca", "resultBadge": "13,4% das multas" },
+                                { "id": "1.4.1.4", "title": "Recusa bafômetro", "resultBadge": "11,8% das multas" }
+                            ]
+                        },
+                        { "id": "1.4.2", "title": "Recuperação roubo/furto", "resultBadge": "23,2% das apreensões" },
+                        { "id": "1.4.3", "title": "Acidente de trânsito", "resultBadge": "8,3% das apreensões" },
+                        { "id": "1.4.4", "title": "Restrição de circulação", "resultBadge": "6,5% das apreensões" },
+                        {
+                            "id": "1.4.5",
+                            "title": "Ocorrências criminais",
+                            "resultBadge": "21,4% das apreensões",
+                            "children": [
+                                { "id": "1.4.5.1", "title": "Tráfico", "resultBadge": "39,7% das multas" },
+                                { "id": "1.4.5.2", "title": "Assalto", "resultBadge": "27,2% das multas" }
+                            ]
+                        },
+                        { "id": "1.4.6", "title": "Outros motivos", "resultBadge": "9,6% das apreensões" }
+                    ],
+                    "notes": [
+                        "Observações: casos judiciais subiram de 17 para 27 (YTD).",
+                        "Gap de prazo: adm 3–15 dias vs judiciais 100–300 dias.",
+                        "Alta em apreensões por ocorrências criminais.",
+                        "Ações: procuração ECAR (piloto LM); visitas a Delegacias; verificação de veículos em perícia; relacionamento com escrivães; monitoramento via DDL; foco >200 dias; alertas de risco de leilão."
+                    ]
+                },
+                {
+                    "id": "1.5",
+                    "title": "Sinistros de Perda Total",
+                    "resultBadge": "234 carros",
+                    "children": [
+                        {
+                            "id": "1.5.1",
+                            "title": "São Paulo",
+                            "resultBadge": "213 carros | 176 avaliados",
+                            "children": [
+                                { "id": "1.5.1.1", "title": "Venda no estado", "resultBadge": "117 carros" },
+                                { "id": "1.5.1.2", "title": "PT", "resultBadge": "1 carro" },
+                                { "id": "1.5.1.3", "title": "Manutenção", "resultBadge": "58 carros" }
+                            ]
+                        },
+                        {
+                            "id": "1.5.2",
+                            "title": "Porto Alegre",
+                            "resultBadge": "20 carros",
+                            "children": [
+                                { "id": "1.5.2.1", "title": "Venda no estado", "resultBadge": "6 carros" },
+                                { "id": "1.5.2.2", "title": "PT", "resultBadge": "4 carros" },
+                                { "id": "1.5.2.3", "title": "Manutenção", "resultBadge": "10 carros" }
+                            ]
+                        },
+                        {
+                            "id": "1.5.3",
+                            "title": "Outras cidades",
+                            "resultBadge": "1 carro",
+                            "children": [
+                                { "id": "1.5.3.1", "title": "Manutenção", "resultBadge": "1 carro" }
+                            ]
+                        }
+                    ],
+                    "notes": [
+                        "Padrão crítico: custos de ~R$500k/ano (2023) → R$1,6M (até ago/2025).",
+                        "Risco: retroalimentação de desmanches; pagamentos sem orçamentos/garantia; falta de documentação (BO, CNH, CRLV, croqui, fotos); risco reputacional CNPJ→CPF.",
+                        "Recomendações: Política de Sinistros (60 dias), rede de oficinas credenciadas, BO obrigatório, aprovação L3+ com auditoria prévia."
+                    ]
+                }
+            ]
+        };
+
+        // Flowchart Engine
+        class FlowchartEngine {
+            constructor(data, container) {
+                this.data = data;
+                this.container = container;
+                this.viewport = document.getElementById('viewport');
+                this.content = document.getElementById('content');
+                this.connections = document.getElementById('connections');
+                this.zoomIndicator = document.getElementById('zoomIndicator');
+                
+                this.nodes = new Map();
+                this.scale = 1;
+                this.translateX = 0;
+                this.translateY = 0;
+                this.isDragging = false;
+                this.startX = 0;
+                this.startY = 0;
+                
+                this.config = {
+                    nodeWidth: 240,
+                    nodeHeight: 80,
+                    horizontalGap: 120,
+                    verticalGap: 40,
+                    levelIndent: 300,
+                    noteOffset: 40
+                };
+                
+                this.init();
+            }
+            
+            init() {
+                this.clearLoading();
+                this.calculateLayout();
+                this.render();
+                this.setupInteractions();
+                this.centerView();
+            }
+            
+            clearLoading() {
+                const loading = this.content.querySelector('.loading');
+                if (loading) loading.remove();
+            }
+            
+            calculateLayout() {
+                const levels = this.buildLevels(this.data);
+                this.positionNodes(levels);
+            }
+            
+            buildLevels(node, level = 0, levels = []) {
+                if (!levels[level]) levels[level] = [];
+                levels[level].push(node);
+                
+                if (node.children && !node._collapsed) {
+                    node.children.forEach(child => {
+                        this.buildLevels(child, level + 1, levels);
+                    });
+                }
+                
+                return levels;
+            }
+            
+            positionNodes(levels) {
+                // Calculate positions for each level
+                levels.forEach((levelNodes, levelIndex) => {
+                    const levelX = levelIndex * this.config.levelIndent;
+                    let currentY = 0;
+                    
+                    levelNodes.forEach((node, nodeIndex) => {
+                        node._x = levelX;
+                        node._y = currentY;
+                        node._width = this.config.nodeWidth;
+                        node._height = this.getNodeHeight(node);
+                        
+                        currentY += node._height + this.config.verticalGap;
+                    });
+                });
+                
+                // Center parents relative to their children
+                this.centerParents(this.data);
+            }
+            
+            getNodeHeight(node) {
+                // Calculate dynamic height based on content
+                let height = this.config.nodeHeight;
+                if (node.subtitle) height += 20;
+                return height;
+            }
+            
+            centerParents(node) {
+                if (node.children && node.children.length > 0 && !node._collapsed) {
+                    const childrenY = node.children.map(child => {
+                        this.centerParents(child);
+                        return child._y + child._height / 2;
+                    });
+                    
+                    const minY = Math.min(...childrenY);
+                    const maxY = Math.max(...childrenY);
+                    node._y = minY + (maxY - minY) / 2 - node._height / 2;
+                }
+            }
+            
+            render() {
+                this.renderConnections();
+                this.renderNodes(this.data);
+                this.renderNotes();
+            }
+            
+            renderConnections() {
+                this.connections.innerHTML = '';
+                
+                // Add arrow marker definition
+                const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+                defs.innerHTML = `
+                    <marker id="arrow" markerWidth="10" markerHeight="10" 
+                            refX="9" refY="5" orient="auto">
+                        <path d="M0,0 L10,5 L0,10 L6,5 z" class="connection-arrow"/>
+                    </marker>
+                `;
+                this.connections.appendChild(defs);
+                
+                // Set SVG dimensions
+                const bounds = this.calculateBounds();
+                this.connections.setAttribute('width', bounds.width);
+                this.connections.setAttribute('height', bounds.height);
+                
+                // Draw connections
+                this.drawConnections(this.data);
+            }
+            
+            calculateBounds() {
+                let maxX = 0, maxY = 0;
+                
+                const traverse = (node) => {
+                    maxX = Math.max(maxX, node._x + node._width);
+                    maxY = Math.max(maxY, node._y + node._height);
+                    
+                    if (node.children && !node._collapsed) {
+                        node.children.forEach(traverse);
+                    }
+                };
+                
+                traverse(this.data);
+                
+                return {
+                    width: maxX + 200,
+                    height: maxY + 200
+                };
+            }
+            
+            drawConnections(node) {
+                if (node.children && !node._collapsed) {
+                    node.children.forEach(child => {
+                        const path = this.createConnection(node, child);
+                        this.connections.appendChild(path);
+                        this.drawConnections(child);
+                    });
+                }
+            }
+            
+            createConnection(from, to) {
+                const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                
+                const x1 = from._x + from._width;
+                const y1 = from._y + from._height / 2;
+                const x2 = to._x;
+                const y2 = to._y + to._height / 2;
+                
+                // Smooth bezier curve
+                const dx = x2 - x1;
+                const cp1x = x1 + dx * 0.5;
+                const cp2x = x2 - dx * 0.5;
+                
+                const d = `M ${x1} ${y1} C ${cp1x} ${y1}, ${cp2x} ${y2}, ${x2} ${y2}`;
+                
+                path.setAttribute('d', d);
+                path.setAttribute('class', 'connection');
+                path.setAttribute('marker-end', 'url(#arrow)');
+                
+                return path;
+            }
+            
+            renderNodes(node, isRoot = true) {
+                const nodeEl = this.createNode(node, isRoot);
+                this.content.appendChild(nodeEl);
+                this.nodes.set(node.id, { element: nodeEl, data: node });
+                
+                if (node.children && !node._collapsed) {
+                    node.children.forEach(child => {
+                        this.renderNodes(child, false);
+                    });
+                }
+            }
+            
+            createNode(node, isRoot) {
+                const div = document.createElement('div');
+                div.className = 'node';
+                if (isRoot) div.classList.add('is-root');
+                if (node._collapsed) div.classList.add('is-collapsed');
+                
+                div.style.left = `${node._x}px`;
+                div.style.top = `${node._y}px`;
+                div.style.width = `${node._width}px`;
+                
+                // Build node content
+                let html = '<div class="node__header">';
+                
+                if (node.children && node.children.length > 0) {
+                    html += `
+                        <div class="node__chevron">
+                            <svg viewBox="0 0 12 12" fill="currentColor">
+                                <path d="M3 4l4 4 4-4"/>
+                            </svg>
+                        </div>
+                    `;
+                }
+                
+                html += `<div class="node__title">${node.title}</div></div>`;
+                
+                if (node.subtitle) {
+                    html += `<div class="node__subtitle">${node.subtitle}</div>`;
+                }
+                
+                div.innerHTML = html;
+                
+                // Add badge if exists
+                if (node.resultBadge) {
+                    const badge = document.createElement('div');
+                    badge.className = 'node__badge';
+                    badge.textContent = node.resultBadge;
+                    div.appendChild(badge);
+                }
+                
+                // Add click handler for collapse
+                if (node.children && node.children.length > 0) {
+                    const chevron = div.querySelector('.node__chevron');
+                    chevron.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        this.toggleNode(node);
+                    });
+                }
+                
+                return div;
+            }
+            
+            renderNotes() {
+                // Render notes for specific nodes
+                const noteNodes = ['1.1', '1.2', '1.3', '1.4', '1.5'];
+                
+                noteNodes.forEach(nodeId => {
+                    const nodeData = this.nodes.get(nodeId);
+                    if (nodeData && nodeData.data.notes) {
+                        this.createNote(nodeData.data);
+                    }
+                });
+            }
+            
+            createNote(node) {
+                const note = document.createElement('div');
+                note.className = 'note';
+                
+                note.style.left = `${node._x + node._width + this.config.noteOffset}px`;
+                note.style.top = `${node._y}px`;
+                
+                let html = '<div class="note__header">📌 Observações</div>';
+                html += '<ul class="note__list">';
+                
+                node.notes.forEach(text => {
+                    html += `<li class="note__item">${text}</li>`;
+                });
+                
+                html += '</ul>';
+                note.innerHTML = html;
+                
+                this.content.appendChild(note);
+            }
+            
+            toggleNode(node) {
+                node._collapsed = !node._collapsed;
+                this.calculateLayout();
+                this.render();
+            }
+            
+            expandAll() {
+                this.setCollapsedState(this.data, false);
+                this.calculateLayout();
+                this.render();
+            }
+            
+            collapseAll() {
+                this.setCollapsedState(this.data, true, true);
+                this.calculateLayout();
+                this.render();
+            }
+            
+            setCollapsedState(node, collapsed, isRoot = false) {
+                if (!isRoot) node._collapsed = collapsed;
+                if (node.children) {
+                    node.children.forEach(child => {
+                        this.setCollapsedState(child, collapsed);
+                    });
+                }
+            }
+            
+            setupInteractions() {
+                // Pan functionality
+                this.viewport.addEventListener('mousedown', this.startDrag.bind(this));
+                this.viewport.addEventListener('mousemove', this.drag.bind(this));
+                this.viewport.addEventListener('mouseup', this.endDrag.bind(this));
+                this.viewport.addEventListener('mouseleave', this.endDrag.bind(this));
+                
+                // Zoom functionality
+                this.viewport.addEventListener('wheel', this.zoom.bind(this));
+                
+                // Touch support
+                this.setupTouch();
+            }
+            
+            startDrag(e) {
+                if (e.target.closest('.node') || e.target.closest('.note')) return;
+                
+                this.isDragging = true;
+                this.startX = e.clientX - this.translateX;
+                this.startY = e.clientY - this.translateY;
+                this.viewport.classList.add('is-dragging');
+            }
+            
+            drag(e) {
+                if (!this.isDragging) return;
+                
+                this.translateX = e.clientX - this.startX;
+                this.translateY = e.clientY - this.startY;
+                this.updateTransform();
+            }
+            
+            endDrag() {
+                this.isDragging = false;
+                this.viewport.classList.remove('is-dragging');
+            }
+            
+            zoom(e) {
+                e.preventDefault();
+                
+                const delta = e.deltaY > 0 ? 0.9 : 1.1;
+                const newScale = Math.min(Math.max(this.scale * delta, 0.3), 3);
+                
+                // Zoom towards cursor
+                const rect = this.viewport.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                this.translateX = x - (x - this.translateX) * (newScale / this.scale);
+                this.translateY = y - (y - this.translateY) * (newScale / this.scale);
+                
+                this.scale = newScale;
+                this.updateTransform();
+                this.showZoomIndicator();
+            }
+            
+            setupTouch() {
+                let touchDistance = 0;
+                
+                this.viewport.addEventListener('touchstart', (e) => {
+                    if (e.touches.length === 1) {
+                        this.isDragging = true;
+                        this.startX = e.touches[0].clientX - this.translateX;
+                        this.startY = e.touches[0].clientY - this.translateY;
+                    } else if (e.touches.length === 2) {
+                        this.isDragging = false;
+                        touchDistance = this.getTouchDistance(e.touches);
+                    }
+                });
+                
+                this.viewport.addEventListener('touchmove', (e) => {
+                    e.preventDefault();
+                    
+                    if (e.touches.length === 1 && this.isDragging) {
+                        this.translateX = e.touches[0].clientX - this.startX;
+                        this.translateY = e.touches[0].clientY - this.startY;
+                        this.updateTransform();
+                    } else if (e.touches.length === 2) {
+                        const newDistance = this.getTouchDistance(e.touches);
+                        const delta = newDistance / touchDistance;
+                        this.scale = Math.min(Math.max(this.scale * delta, 0.3), 3);
+                        touchDistance = newDistance;
+                        this.updateTransform();
+                        this.showZoomIndicator();
+                    }
+                });
+                
+                this.viewport.addEventListener('touchend', () => {
+                    this.isDragging = false;
+                });
+            }
+            
+            getTouchDistance(touches) {
+                const dx = touches[0].clientX - touches[1].clientX;
+                const dy = touches[0].clientY - touches[1].clientY;
+                return Math.sqrt(dx * dx + dy * dy);
+            }
+            
+            updateTransform() {
+                this.content.style.transform = 
+                    `translate(${this.translateX}px, ${this.translateY}px) scale(${this.scale})`;
+            }
+            
+            showZoomIndicator() {
+                this.zoomIndicator.textContent = `${Math.round(this.scale * 100)}%`;
+                this.zoomIndicator.classList.add('is-visible');
+                
+                clearTimeout(this.zoomTimeout);
+                this.zoomTimeout = setTimeout(() => {
+                    this.zoomIndicator.classList.remove('is-visible');
+                }, 1500);
+            }
+            
+            resetView() {
+                this.scale = 1;
+                this.centerView();
+                this.updateTransform();
+            }
+            
+            centerView() {
+                const bounds = this.calculateBounds();
+                const viewportRect = this.viewport.getBoundingClientRect();
+                
+                this.translateX = (viewportRect.width - bounds.width) / 2;
+                this.translateY = 50;
+                
+                this.updateTransform();
+            }
+        }
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            const engine = new FlowchartEngine(flowchartData, document.getElementById('content'));
+            
+            // Button handlers
+            document.getElementById('expandAll').addEventListener('click', () => {
+                engine.expandAll();
+            });
+            
+            document.getElementById('collapseAll').addEventListener('click', () => {
+                engine.collapseAll();
+            });
+            
+            document.getElementById('resetView').addEventListener('click', () => {
+                engine.resetView();
+            });
+        });
+    </script>
+</body>
+</html>
