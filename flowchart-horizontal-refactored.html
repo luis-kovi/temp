@@ -24,6 +24,20 @@
             --border-color: #e2e8f0;
             --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
             --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            
+            /* Cores em tons pastel para ramificações */
+            --branch-1-1: #e0f2fe; /* Azul claro */
+            --branch-1-2: #dcfce7; /* Verde claro */
+            --branch-1-3: #fef3c7; /* Amarelo claro */
+            --branch-1-4: #fce7f3; /* Rosa claro */
+            --branch-1-5: #e9d5ff; /* Roxo claro */
+            
+            /* Cores secundárias para sub-ramificações */
+            --branch-1-1-dark: #bae6fd;
+            --branch-1-2-dark: #bbf7d0;
+            --branch-1-3-dark: #fde68a;
+            --branch-1-4-dark: #fbcfe8;
+            --branch-1-5-dark: #d8b4fe;
         }
 
         body {
@@ -71,7 +85,7 @@
             flex: 1;
             position: relative;
             display: flex;
-            gap: 40px;
+            gap: 30px;
             align-items: flex-start;
             overflow-x: auto;
             padding-bottom: 20px;
@@ -80,27 +94,26 @@
         .node-column {
             display: flex;
             flex-direction: column;
-            gap: 15px;
-            min-width: 200px;
+            gap: 12px;
+            min-width: 150px;
             position: relative;
         }
 
         .node {
             background: var(--card-bg);
             border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 12px 16px;
+            border-radius: 6px;
+            padding: 8px 10px;
             position: relative;
             transition: all 0.2s ease;
             cursor: pointer;
-            min-width: 180px;
-            max-width: 250px;
+            min-width: 120px;
+            max-width: 180px;
         }
 
         .node:hover {
-            border-color: var(--primary-color);
+            transform: translateY(-1px);
             box-shadow: var(--shadow-lg);
-            transform: translateY(-2px);
         }
 
         .node.root {
@@ -108,6 +121,9 @@
             color: white;
             border-color: var(--primary-color);
             font-weight: 600;
+            padding: 12px 16px;
+            min-width: 180px;
+            max-width: 250px;
         }
 
         .node.root:hover {
@@ -115,17 +131,28 @@
             border-color: #1d4ed8;
         }
 
+        /* Cores por seção */
+        .section-1-1 .node:not(.root) { background-color: var(--branch-1-1); border-color: var(--branch-1-1-dark); }
+        .section-1-2 .node:not(.root) { background-color: var(--branch-1-2); border-color: var(--branch-1-2-dark); }
+        .section-1-3 .node:not(.root) { background-color: var(--branch-1-3); border-color: var(--branch-1-3-dark); }
+        .section-1-4 .node:not(.root) { background-color: var(--branch-1-4); border-color: var(--branch-1-4-dark); }
+        .section-1-5 .node:not(.root) { background-color: var(--branch-1-5); border-color: var(--branch-1-5-dark); }
+
+        /* Cores mais intensas para níveis mais profundos */
+        .level-3 .node:not(.root) { opacity: 0.95; }
+        .level-4 .node:not(.root) { opacity: 0.9; }
+
         .node-title {
-            font-size: 14px;
+            font-size: 12px;
             font-weight: 600;
-            line-height: 1.4;
-            margin-bottom: 4px;
+            line-height: 1.3;
+            margin-bottom: 2px;
         }
 
         .node-subtitle {
-            font-size: 12px;
+            font-size: 10px;
             color: var(--text-secondary);
-            margin-bottom: 8px;
+            margin-bottom: 4px;
         }
 
         .node.root .node-subtitle {
@@ -136,11 +163,11 @@
             display: inline-block;
             background: #fee2e2;
             color: var(--danger-color);
-            padding: 4px 8px;
+            padding: 2px 6px;
             border-radius: 4px;
-            font-size: 11px;
+            font-size: 10px;
             font-weight: 600;
-            margin-top: 4px;
+            margin-top: 2px;
         }
 
         .result-badge.positive {
@@ -151,13 +178,15 @@
         .notes-container {
             position: sticky;
             top: 20px;
-            width: 350px;
+            width: 400px;
             background: #fffbeb;
             border: 1px solid #fcd34d;
             border-radius: 8px;
             padding: 16px;
             margin-left: auto;
             flex-shrink: 0;
+            max-height: 80vh;
+            overflow-y: auto;
         }
 
         .notes-title {
@@ -170,20 +199,35 @@
             gap: 8px;
         }
 
-        .notes-list {
-            list-style: none;
+        .notes-content {
+            font-size: 11px;
+            color: #78350f;
+            line-height: 1.6;
         }
 
-        .notes-list li {
-            font-size: 12px;
-            color: #78350f;
-            margin-bottom: 8px;
+        .notes-content p {
+            margin-bottom: 10px;
+        }
+
+        .notes-content strong {
+            display: block;
+            margin-top: 10px;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+
+        .notes-content ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .notes-content li {
             padding-left: 16px;
             position: relative;
-            line-height: 1.5;
+            margin-bottom: 5px;
         }
 
-        .notes-list li:before {
+        .notes-content li:before {
             content: '•';
             position: absolute;
             left: 0;
@@ -208,16 +252,18 @@
             stroke-width: 2;
         }
 
-        .connection-line.active {
-            stroke: var(--primary-color);
-            stroke-width: 2.5;
-        }
+        /* Cores das linhas por seção */
+        .section-1-1 .connection-line { stroke: var(--branch-1-1-dark); }
+        .section-1-2 .connection-line { stroke: var(--branch-1-2-dark); }
+        .section-1-3 .connection-line { stroke: var(--branch-1-3-dark); }
+        .section-1-4 .connection-line { stroke: var(--branch-1-4-dark); }
+        .section-1-5 .connection-line { stroke: var(--branch-1-5-dark); }
 
         /* Hierarquia visual */
         .level-1 { margin-left: 0; }
-        .level-2 { margin-left: 20px; }
-        .level-3 { margin-left: 40px; }
-        .level-4 { margin-left: 60px; }
+        .level-2 { margin-left: 15px; }
+        .level-3 { margin-left: 30px; }
+        .level-4 { margin-left: 45px; }
 
         /* Responsividade */
         @media (max-width: 1200px) {
@@ -226,6 +272,7 @@
                 width: 100%;
                 margin-top: 20px;
                 margin-left: 0;
+                max-height: none;
             }
 
             .section-wrapper {
@@ -247,20 +294,20 @@
             }
 
             .node {
-                min-width: 150px;
-                padding: 10px 12px;
+                min-width: 100px;
+                padding: 6px 8px;
             }
 
             .node-title {
-                font-size: 13px;
-            }
-
-            .node-subtitle {
                 font-size: 11px;
             }
 
+            .node-subtitle {
+                font-size: 9px;
+            }
+
             .result-badge {
-                font-size: 10px;
+                font-size: 9px;
             }
         }
     </style>
@@ -270,7 +317,7 @@
         <h1>Gestão de Ativos — Loss Prevention</h1>
         
         <!-- Seção 1.1: Perder no máximo 10 carros/mês -->
-        <div class="flowchart-section">
+        <div class="flowchart-section section-1-1">
             <div class="section-wrapper">
                 <div class="flowchart-container">
                     <svg class="connections" width="100%" height="100%"></svg>
@@ -347,18 +394,43 @@
 
                 <div class="notes-container">
                     <div class="notes-title">📌 Observações</div>
-                    <ul class="notes-list">
-                        <li>Padrão mais crítico: combinação de inadimplência alta, problemas documentais, pagamentos por terceiros com restrição (BGC) e relatos inconsistentes com rastreador.</li>
-                        <li>Modus operandi: dívidas acumuladas, incidente em local conhecido, comunicação tardia, veículo não recuperado.</li>
-                        <li>Oportunidades operacionais: contato com cliente, início ágil de tratativas de desconexões/alertas, acionamento rápido de Pronta Resposta.</li>
-                        <li>Oportunidades sistêmicas: integrar Safety Admin + Pipefy; ingerir dados Pix para detecção de vínculos de risco.</li>
-                    </ul>
+                    <div class="notes-content">
+                        <strong>Padrão mais crítico:</strong>
+                        <p>Casos com indícios de participação do motorista apresentam combinação consistente de:</p>
+                        <ul>
+                            <li>Inadimplência ou débitos elevados</li>
+                            <li>Problemas documentais (endereços inválidos, comprovantes sem código de barras)</li>
+                            <li>Pagamentos realizados por terceiros com restrições no BGC</li>
+                            <li>Relatos inconsistentes com dados do rastreador</li>
+                        </ul>
+                        
+                        <strong>Modus operandi recorrente:</strong>
+                        <ul>
+                            <li>Motorista acumula dívidas</li>
+                            <li>"Incidente" ocorre em local conhecido/frequentado pelo motorista</li>
+                            <li>Comunicação tardia ou com inconsistências temporais</li>
+                            <li>Veículo não é recuperado</li>
+                        </ul>
+                        
+                        <strong>Principais oportunidades operacionais (matriz de auditoria):</strong>
+                        <ul>
+                            <li>Falta de tentativa de contato com o cliente</li>
+                            <li>Atraso no início de tratativa de desconexões e demais alertas</li>
+                            <li>Atraso no acionamento de Pronta Resposta</li>
+                        </ul>
+                        
+                        <strong>Principais oportunidades sistêmicas:</strong>
+                        <ul>
+                            <li>Integração de Safety Admin e Pipefy - Cadastro, gerenciamento do alerta e gestão dos dados mais eficientes</li>
+                            <li>Ingestão de dados de pagamento via Pix: Forte relação de clientes banidos ou pagantes de outros cadastros que tiveram perda</li>
+                        </ul>
+                    </div>
                 </div>
             </div>
         </div>
 
         <!-- Seção 1.2: Gastos com guincho -->
-        <div class="flowchart-section">
+        <div class="flowchart-section section-1-2">
             <div class="section-wrapper">
                 <div class="flowchart-container">
                     <svg class="connections" width="100%" height="100%"></svg>
@@ -413,17 +485,21 @@
 
                 <div class="notes-container">
                     <div class="notes-title">📌 Observações</div>
-                    <ul class="notes-list">
-                        <li>Padrão crítico: baixa devolução voluntária.</li>
-                        <li>Aumento de abandono em via pública (recorde Ago/2025: 88; média 2025: 64/mês).</li>
-                        <li>Impacto em custos de segunda via de chaves e tendência de alta em cegonha por expansão.</li>
-                    </ul>
+                    <div class="notes-content">
+                        <strong>Padrão mais crítico:</strong>
+                        <ul>
+                            <li>Baixo índice de devolução voluntária - Cliente não faz pagamentos e também não se prontifica em devolver o veículo</li>
+                            <li>Aumento de casos onde o cliente abandona o veículo bloqueado em via pública - atrasa o pagamento, usa promessa de pagamento, após o fim do prazo, já sabendo que não conseguirá fazer o pagamento, deixa o veículo em via pública, geralmente em local distante do endereço de cadastro. Agosto/2025 detém recorde histórico de banimento por abandono (88 casos). Média 2025: 64/mês.</li>
+                            <li>Esse comportamento eleva outra cifra: custos de segunda via de chaves.</li>
+                            <li>Custos de cegonha também apresentam tendência de alta em virtude do processo de expansão.</li>
+                        </ul>
+                    </div>
                 </div>
             </div>
         </div>
 
         <!-- Seção 1.3: Gastos com Pronta Resposta -->
-        <div class="flowchart-section">
+        <div class="flowchart-section section-1-3">
             <div class="section-wrapper">
                 <div class="flowchart-container">
                     <svg class="connections" width="100%" height="100%"></svg>
@@ -432,7 +508,7 @@
                         <div class="node root" data-id="1.3">
                             <div class="node-title">Gastos com Pronta Resposta</div>
                             <div class="node-subtitle">UE R$ 30</div>
-                            <div class="result-badge">Resultado R$ 2.6M / UE R$ 42</div>
+                            <div class="result-badge">Resultado R$ 2.6M / UE R$ 22</div>
                         </div>
                     </div>
 
@@ -486,16 +562,31 @@
 
                 <div class="notes-container">
                     <div class="notes-title">📌 Observações</div>
-                    <ul class="notes-list">
-                        <li>Distribuição por Regional (ago): SP 73%, POA 13%, FOR 3%, BSB 3%, CAMP 2%, STS 2%, REC 1%, BH 1%, FLN 1%, CWB 1%, GYN 1%.</li>
-                        <li>Pontos de atenção: desconexões por má instalação (novas cidades); rotina de redução de falsos positivos com Tech; aumento de ataques correlacionado às perdas consumadas/evitadas.</li>
-                    </ul>
+                    <div class="notes-content">
+                        <strong>Distribuição por Regional (alertas de agosto):</strong>
+                        <ul>
+                            <li>São Paulo 73%</li>
+                            <li>Porto Alegre 13%</li>
+                            <li>Fortaleza 3%</li>
+                            <li>Brasília 3%</li>
+                            <li>Campinas 2%</li>
+                            <li>Santos 2%</li>
+                            <li>Recife 1%</li>
+                            <li>Belo Horizonte 1%</li>
+                            <li>Florianópolis 1%</li>
+                            <li>Curitiba 1%</li>
+                            <li>Goiânia 1%</li>
+                        </ul>
+                        
+                        <strong>Ponto de Atenção:</strong>
+                        <p>Veículos de Novas Cidades - Desconexões por Má instalação de KTS; Falsos Positivos - Mantemos a rotina de melhorias junto ao time de tech com o objetivo de melhorar a qualidade dos alertas; Aumento de ataques - Está relacionado com o quantidade de perdas consumadas e perdas evitadas que tivemos no mês.</p>
+                    </div>
                 </div>
             </div>
         </div>
 
         <!-- Seção 1.4: Seized — Frota apreendida -->
-        <div class="flowchart-section">
+        <div class="flowchart-section section-1-4">
             <div class="section-wrapper">
                 <div class="flowchart-container">
                     <svg class="connections" width="100%" height="100%"></svg>
@@ -565,18 +656,29 @@
 
                 <div class="notes-container">
                     <div class="notes-title">📌 Observações</div>
-                    <ul class="notes-list">
-                        <li>Observações: casos judiciais subiram de 17 para 27 (YTD).</li>
-                        <li>Gap de prazo: adm 3–15 dias vs judiciais 100–300 dias.</li>
-                        <li>Alta em apreensões por ocorrências criminais.</li>
-                        <li>Ações: procuração ECAR (piloto LM); visitas a Delegacias; verificação de veículos em perícia; relacionamento com escrivães; monitoramento via DDL; foco >200 dias; alertas de risco de leilão.</li>
-                    </ul>
+                    <div class="notes-content">
+                        <strong>Observações analíticas importantes:</strong>
+                        <p>Crescimento preocupante: Os casos judiciais aumentaram de 17 no começo do ano para 27 na semanas atuais.</p>
+                        <p>Ineficiência sistêmica: Há uma diferença temporal importante entre casos administrativos (3-15 dias) e judiciais (100-300 dias).</p>
+                        <p>Padrão comportamental: Elevação no número de casos de apreensão por ocorrências criminais.</p>
+                        
+                        <strong>Ações em andamento:</strong>
+                        <ul>
+                            <li>Emissão de procuração específica para novo fornecedor ECAR, inicialmente limitada aos carros da LM para teste piloto</li>
+                            <li>Programa sistemático de visitas às Delegacias de Polícia para identificar falhas de comunicação</li>
+                            <li>Verificação individual de veículos que aguardam perícia para mapear inconsistências do sistema</li>
+                            <li>Relacionamento institucional direto com escrivães chefes para agilizar processos</li>
+                            <li>Monitoramento individualizado de cada veículo em processo judicial via escritório DDL</li>
+                            <li>Acompanhamento contínuo de casos críticos (veículos com 200+ dias de apreensão)</li>
+                            <li>Implementação de alertas para veículos em risco de leilão por demora processual</li>
+                        </ul>
+                    </div>
                 </div>
             </div>
         </div>
 
         <!-- Seção 1.5: Sinistros de Perda Total -->
-        <div class="flowchart-section">
+        <div class="flowchart-section section-1-5">
             <div class="section-wrapper">
                 <div class="flowchart-container">
                     <svg class="connections" width="100%" height="100%"></svg>
@@ -639,11 +741,33 @@
 
                 <div class="notes-container">
                     <div class="notes-title">📌 Observações</div>
-                    <ul class="notes-list">
-                        <li>Padrão crítico: custos de ~R$500k/ano (2023) → R$1,6M (até ago/2025).</li>
-                        <li>Risco: retroalimentação de desmanches; pagamentos sem orçamentos/garantia; falta de documentação (BO, CNH, CRLV, croqui, fotos); risco reputacional CNPJ→CPF.</li>
-                        <li>Recomendações: Política de Sinistros (60 dias), rede de oficinas credenciadas, BO obrigatório, aprovação L3+ com auditoria prévia.</li>
-                    </ul>
+                    <div class="notes-content">
+                        <strong>Principais Achados</strong>
+                        <p>Padrão mais crítico: Pagamentos diretos a terceiros (pessoa física) apresentam combinação consistente de:</p>
+                        <p>Crescimento exponencial dos custos: de ~R$ 500k/ano (2023) para R$ 1,6mi (até agosto/2025)</p>
+                        <p>Exposição a organizações criminosas via retroalimentação de desmanches</p>
+                        <p>Ausência de garantias formais e controle técnico sobre reparos</p>
+                        <p>Vulnerabilidade a cobranças judiciais futuras por "consertos insuficientes"</p>
+                        
+                        <strong>Modus operandi recorrente:</strong>
+                        <p>Terceiro rejeita oficina credenciada da Kovi</p>
+                        <p>Empresa efetua pagamento direto via transferência CNPJ → CPF</p>
+                        <p>Ausência de acompanhamento técnico do reparo realizado</p>
+                        <p>Terceiro pode direcionar veículo para desmanche ou fazer reparo inadequado</p>
+                        
+                        <strong>Red Flags Mais Significativos</strong>
+                        <p>Segurança/Compliance: Retroalimentação de redes criminosas de desmanche de veículos</p>
+                        <p>Financeiro/Jurídico: Pagamentos sem orçamentos comparativos (mínimo 3) e sem garantia de serviço</p>
+                        <p>Governança: Ausência de documentação vital (BO obrigatório, CNH, CRLV, croqui, fotos)</p>
+                        <p>Reputacional: Transferências CNPJ→CPF interpretadas como tentativa de "se livrar" do problema</p>
+                        
+                        <strong>Recomendações Críticas</strong>
+                        <p>A análise indica necessidade urgente de implementação de:</p>
+                        <p>Política de Sinistros completa (interna/externa) em 60 dias</p>
+                        <p>Rede de oficinas credenciadas para eliminar pagamentos diretos</p>
+                        <p>Obrigatoriedade de BO em todos os casos</p>
+                        <p>Aprovação L3+ para abertura de sinistros com auditoria documental prévia</p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -691,11 +815,6 @@
                             const d = `M ${startX} ${startY} C ${midX} ${startY}, ${midX} ${endY}, ${endX} ${endY}`;
                             path.setAttribute('d', d);
                             path.setAttribute('class', 'connection-line');
-                            
-                            // Adicionar classe active para conexões principais
-                            if (parent.classList.contains('root')) {
-                                path.classList.add('active');
-                            }
                             
                             svg.appendChild(path);
                         }
